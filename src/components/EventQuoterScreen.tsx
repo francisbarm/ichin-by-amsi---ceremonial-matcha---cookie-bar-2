@@ -6,6 +6,7 @@ import {
   Send, ChevronRight, ChevronLeft, ShieldCheck, 
   Coffee, Award, Heart, MessageCircle 
 } from 'lucide-react';
+import { guardarCotizacionSupabase } from '../lib/supabase';
 
 interface EventQuoterScreenProps {
   onQuoteSubmitted: (newBooking: BookingRecord) => void;
@@ -118,6 +119,31 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
       createdAt: 'Hace un momento',
     };
 
+    // Guardar asíncronamente en Supabase (tabla ichin_cotizaciones y leads de AMSI CRM)
+    guardarCotizacionSupabase({
+      cliente_nombre: quoteState.clientName.trim() || 'Cliente Distinguido',
+      cliente_telefono: quoteState.clientPhone.trim() || 'No especificado',
+      tipo_evento: quoteState.eventType,
+      fecha_evento: `${quoteState.eventDate} ${quoteState.eventTime}`,
+      lugar_evento: quoteState.locationZone,
+      numero_invitados: quoteState.guestCount,
+      paquete_nombre: selectedPkg.name,
+      tipo_montaje: quoteState.setupColorTheme || 'Barra Estándar',
+      adicionales: [
+        quoteState.includeCookies ? `Cookies artesanales (${selectedPkg.cookieCount})` : '',
+        quoteState.coldFoamBar ? 'Barra de Espumas Frías' : '',
+        quoteState.signatureDrink ? 'Bebida de Autor Exclusiva' : '',
+        quoteState.customBrandedCups ? 'Vasos Personalizados con Logo' : '',
+      ].filter(Boolean),
+      notas_adicionales: `Frase en pizarra: "${quoteState.customSignagePhrase}". Código: ${bookingCode}`,
+      resumen_items: {
+        codigo: bookingCode,
+        bebidasBase: selectedPkg.drinksCount,
+        horas: quoteState.serviceHours,
+        opcionVasos: quoteState.cupOption,
+      },
+    });
+
     setSubmittedBooking(newRecord);
     setIsSubmitted(true);
     onQuoteSubmitted(newRecord);
@@ -129,6 +155,29 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
       : quoteState.cupOption === 'vidrio_solicitud' 
         ? 'Cristalería en Vidrio (Bajo Solicitud)' 
         : 'Vasos PET Cristalinos Premium';
+
+    // Guardar también en Supabase al contactar por WhatsApp
+    guardarCotizacionSupabase({
+      cliente_nombre: quoteState.clientName.trim() || 'Cliente WhatsApp Directo',
+      cliente_telefono: quoteState.clientPhone.trim() || 'No especificado',
+      tipo_evento: quoteState.eventType,
+      fecha_evento: `${quoteState.eventDate} ${quoteState.eventTime}`,
+      lugar_evento: quoteState.locationZone,
+      numero_invitados: quoteState.guestCount,
+      paquete_nombre: selectedPkg.name,
+      tipo_montaje: quoteState.setupColorTheme || 'Barra Estándar',
+      adicionales: [
+        quoteState.includeCookies ? `Cookies artesanales (${selectedPkg.cookieCount})` : '',
+        quoteState.coldFoamBar ? 'Barra de Espumas Frías' : '',
+        quoteState.signatureDrink ? 'Bebida de Autor Exclusiva' : '',
+        quoteState.customBrandedCups ? 'Vasos Personalizados con Logo' : '',
+      ].filter(Boolean),
+      notas_adicionales: `Contacto WhatsApp Directo. Pizarra: "${quoteState.customSignagePhrase || 'GOOD HABITS, BETTER DAYS ♡'}"`,
+      resumen_items: {
+        tipo: 'whatsapp_directo',
+        bebidas: selectedPkg.drinksCount,
+      },
+    });
 
     const text = encodeURIComponent(
       `¡Hola ICHIN By AMSI! Me gustaría reservar el carrito de matcha para mi evento.\n\n` +

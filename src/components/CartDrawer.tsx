@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { CartOrderItem } from '../types';
 import { X, Trash2, Plus, Minus, ShoppingBag, Send, Calendar, Sparkles, MapPin } from 'lucide-react';
 import { CARACAS_ZONES } from '../data/eventPackages';
+import { guardarPedidoCarritoSupabase } from '../lib/supabase';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -68,6 +69,14 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
       `\n• *Contacto:* ${customerName || 'Anfitrión'}\n\n` +
       `¿Tienen disponibilidad en agenda para esta fecha? ¡Muchas gracias!`
     );
+
+    // Guardar en Supabase (leads de AMSI CRM)
+    guardarPedidoCarritoSupabase({
+      nombre: customerName || 'Anfitrión Web',
+      telefono: 'WhatsApp Directo',
+      itemsResumen: items.map(it => `${it.quantity}x ${it.item.name}`).join(', '),
+      totalItems: items.reduce((acc, it) => acc + it.quantity, 0),
+    });
 
     window.open(`https://wa.me/584143260003?text=${msg}`, '_blank');
   };
