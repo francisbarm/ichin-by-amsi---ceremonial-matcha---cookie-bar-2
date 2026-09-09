@@ -1,0 +1,6 @@
+{
+  "name": "ICHIN By AMSI - Ceremonial Matcha & Cookie Bar",
+  "description": "App boutique de ICHIN By AMSI: bar de matcha ceremonial, carrito artesanal para eventos exclusivos en Caracas y menú de bebidas naturales con cookies artesanales.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
