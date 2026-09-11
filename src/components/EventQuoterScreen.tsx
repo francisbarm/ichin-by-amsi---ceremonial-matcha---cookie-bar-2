@@ -4,9 +4,11 @@ import { EVENT_PACKAGES, CARACAS_ZONES } from '../data/eventPackages';
 import { 
   Sparkles, Check, Users, Clock, MapPin, Calendar, 
   Send, ChevronRight, ChevronLeft, ShieldCheck, 
-  Coffee, Award, Heart, MessageCircle 
+  Coffee, Award, Heart, MessageCircle, Mail 
 } from 'lucide-react';
 import { guardarCotizacionSupabase } from '../lib/supabase';
+import { enviarCorreoCotizacionResend } from '../services/resendService';
+import { enviarCotizacionWhatsApp } from '../services/whatsappService';
 
 interface EventQuoterScreenProps {
   onQuoteSubmitted: (newBooking: BookingRecord) => void;
@@ -123,6 +125,7 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
     guardarCotizacionSupabase({
       cliente_nombre: quoteState.clientName.trim() || 'Cliente Distinguido',
       cliente_telefono: quoteState.clientPhone.trim() || 'No especificado',
+      cliente_email: quoteState.clientEmail.trim() || undefined,
       tipo_evento: quoteState.eventType,
       fecha_evento: `${quoteState.eventDate} ${quoteState.eventTime}`,
       lugar_evento: quoteState.locationZone,
@@ -144,6 +147,28 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
       },
     });
 
+    // Enviar correo de confirmación de cotización vía Resend
+    if (quoteState.clientEmail && quoteState.clientEmail.includes('@')) {
+      enviarCorreoCotizacionResend({
+        toEmail: quoteState.clientEmail.trim(),
+        clientName: quoteState.clientName.trim() || 'Cliente Distinguido',
+        bookingCode: bookingCode,
+        packageName: selectedPkg.name,
+        guestCount: quoteState.guestCount,
+        eventDate: quoteState.eventDate,
+        eventTime: quoteState.eventTime,
+        locationZone: quoteState.locationZone,
+        setupTheme: quoteState.setupColorTheme,
+        addons: [
+          quoteState.includeCookies ? `Cookies artesanales horneadas al día (${selectedPkg.cookieCount})` : '',
+          quoteState.coldFoamBar ? 'Estación de Espumas Frías (Matcha Cold Foam)' : '',
+          quoteState.signatureDrink ? 'Bebida de Autor Exclusiva del Evento' : '',
+          quoteState.customBrandedCups ? 'Vasos Personalizados con Logo/Monograma' : '',
+        ].filter(Boolean),
+        signagePhrase: quoteState.customSignagePhrase,
+      });
+    }
+
     setSubmittedBooking(newRecord);
     setIsSubmitted(true);
     onQuoteSubmitted(newRecord);
@@ -156,10 +181,11 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
         ? 'Cristalería en Vidrio (Bajo Solicitud)' 
         : 'Vasos PET Cristalinos Premium';
 
-    // Guardar también en Supabase al contactar por WhatsApp
+    // Guardar en Supabase y abrir WhatsApp oficial
     guardarCotizacionSupabase({
       cliente_nombre: quoteState.clientName.trim() || 'Cliente WhatsApp Directo',
       cliente_telefono: quoteState.clientPhone.trim() || 'No especificado',
+      cliente_email: quoteState.clientEmail.trim() || undefined,
       tipo_evento: quoteState.eventType,
       fecha_evento: `${quoteState.eventDate} ${quoteState.eventTime}`,
       lugar_evento: quoteState.locationZone,
@@ -179,21 +205,20 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
       },
     });
 
-    const text = encodeURIComponent(
-      `¡Hola ICHIN By AMSI! Me gustaría reservar el carrito de matcha para mi evento.\n\n` +
-      `• Evento: ${quoteState.eventType}\n` +
-      `• Paquete: ${selectedPkg.name}\n` +
-      `• Invitados: ${quoteState.guestCount}\n` +
-      `• Frase en Pizarra: "${quoteState.customSignagePhrase || 'GOOD HABITS, BETTER DAYS ♡'}"\n` +
-      `• Presentación: ${cupLabel}\n` +
-      `• Fecha: ${quoteState.eventDate} a las ${quoteState.eventTime}\n` +
-      `• Zona Caracas: ${quoteState.locationZone}\n` +
-      `• Modalidad: Solicitud de Cotización a Medida\n` +
-      `• Nombre de contacto: ${quoteState.clientName || 'Cliente'}\n` +
-      `• Teléfono: ${quoteState.clientPhone || 'No especificado'}\n\n` +
-      `¿Tienen disponibilidad para esta fecha? ¡Gracias!`
-    );
-    window.open(`https://wa.me/584143260003?text=${text}`, '_blank');
+    enviarCotizacionWhatsApp({
+      clientName: quoteState.clientName.trim() || 'Cliente',
+      clientPhone: quoteState.clientPhone.trim() || 'No especificado',
+      clientEmail: quoteState.clientEmail.trim() || undefined,
+      bookingCode: submittedBooking?.code || `ICH-${Math.floor(1000 + Math.random() * 9000)}`,
+      eventType: quoteState.eventType,
+      packageName: selectedPkg.name,
+      guestCount: quoteState.guestCount,
+      eventDate: quoteState.eventDate,
+      eventTime: quoteState.eventTime,
+      locationZone: quoteState.locationZone,
+      customSignagePhrase: quoteState.customSignagePhrase,
+      cupOptionLabel: cupLabel,
+    });
   };
 
   return (
@@ -282,6 +307,13 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
               <span className="text-[#B69C76]">Cotización a Medida</span>
             </div>
           </div>
+
+          {quoteState.clientEmail && (
+            <div className="bg-[#EBF3EA] border border-[#BACFBA] rounded-2xl p-3 text-center text-xs text-[#2E432E] flex items-center justify-center gap-2 mb-6">
+              <Mail className="w-4 h-4 text-[#7A8E77]" />
+              <span>Copia de la propuesta enviada a <strong>{quoteState.clientEmail}</strong> vía Resend.</span>
+            </div>
+          )}
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button
@@ -736,6 +768,24 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
                         className="w-full px-3.5 py-3 text-xs bg-white border border-[#E6DFD4] rounded-2xl focus:outline-none focus:border-[#7A8E77] text-[#3C4A3C]"
                       />
                     </div>
+                  </div>
+
+                  {/* Email Field (Resend Integration) */}
+                  <div>
+                    <label className="block text-xs font-bold text-[#3C4A3C] uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <Mail className="w-3.5 h-3.5 text-[#7A8E77]" />
+                        <span>Correo Electrónico (Para recibir propuesta formal)</span>
+                      </span>
+                      <span className="text-[10px] text-[#7A8E77] font-normal lowercase">vía Resend</span>
+                    </label>
+                    <input
+                      type="email"
+                      placeholder="Ej. valeria@gmail.com"
+                      value={quoteState.clientEmail}
+                      onChange={(e) => setQuoteState({ ...quoteState, clientEmail: e.target.value })}
+                      className="w-full px-3.5 py-3 text-xs bg-white border border-[#E6DFD4] rounded-2xl focus:outline-none focus:border-[#7A8E77] text-[#3C4A3C]"
+                    />
                   </div>
 
                   {/* Special notes */}

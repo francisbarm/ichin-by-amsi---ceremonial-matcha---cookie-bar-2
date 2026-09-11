@@ -1,61 +1,86 @@
 -- ==============================================================================
--- ICHIN By AMSI — Esquema y Políticas de Supabase (amsi-crm)
+-- ICHIN By AMSI — Esquema Completo de Supabase
+-- Integración con CRM, Notificaciones Resend y WhatsApp
 -- ==============================================================================
 
--- 1. Extensión para generación de UUIDs únicos
+-- 1. Habilitar extensión para UUIDs
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- 2. TABLA: ichin_cotizaciones
--- Almacena todas las solicitudes detalladas del Cotizador de Barras y Catering
+-- Almacena todas las solicitudes de eventos y barras móviles de matcha
 CREATE TABLE IF NOT EXISTS public.ichin_cotizaciones (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    cliente_nombre TEXT,
-    cliente_telefono TEXT,
-    tipo_evento TEXT,
+    cliente_nombre TEXT NOT NULL,
+    cliente_telefono TEXT NOT NULL,
+    cliente_email TEXT,
+    tipo_evento TEXT DEFAULT 'Boda' NOT NULL,
     fecha_evento TEXT,
-    lugar_evento TEXT,
-    numero_invitados INTEGER,
-    paquete_nombre TEXT,
-    tipo_montaje TEXT,
-    adicionales TEXT[],
+    lugar_evento TEXT DEFAULT 'Caracas',
+    numero_invitados INTEGER DEFAULT 50 NOT NULL,
+    paquete_nombre TEXT NOT NULL,
+    tipo_montaje TEXT DEFAULT 'Barra Estándar',
+    adicionales TEXT[] DEFAULT '{}'::TEXT[],
     notas_adicionales TEXT,
-    resumen_items JSONB,
-    estado TEXT DEFAULT 'nuevo',
+    resumen_items JSONB DEFAULT '{}'::JSONB,
+    estado TEXT DEFAULT 'nuevo' NOT NULL, -- 'nuevo', 'contactado', 'confirmado', 'completado', 'cancelado'
     creado_en TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- 3. TABLA: leads (CRM de clientes potenciales)
+-- 3. TABLA: leads (CRM Unificado de AMSI)
+-- Captura a cada cliente potencial que cotiza o consulta por WhatsApp
 CREATE TABLE IF NOT EXISTS public.leads (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    telefono TEXT NOT NULL,
     nombre TEXT,
-    origen TEXT DEFAULT 'whatsapp'::text NOT NULL,
+    telefono TEXT NOT NULL,
+    email TEXT,
+    origen TEXT DEFAULT 'web_cotizador_ichin' NOT NULL, -- 'web_cotizador_ichin', 'web_carrito_ichin', 'whatsapp'
     palabra_clave TEXT,
-    tipo TEXT DEFAULT 'amazon'::text NOT NULL,
-    estado TEXT DEFAULT 'nuevo'::text NOT NULL,
+    tipo TEXT DEFAULT 'catering_matcha' NOT NULL,
+    estado TEXT DEFAULT 'nuevo' NOT NULL, -- 'nuevo', 'calificado', 'negociacion', 'cerrado_ganado', 'perdido'
     notas TEXT,
     creado_en TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
     actualizado_en TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
 );
 
--- 4. Habilitar Seguridad por Filas (Row Level Security - RLS)
+-- 4. TABLA: notificaciones (Registro de envíos Resend Email y WhatsApp)
+-- Guarda la trazabilidad de cada correo enviado y cada alerta generada
+CREATE TABLE IF NOT EXISTS public.notificaciones (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    cotizacion_id UUID REFERENCES public.ichin_cotizaciones(id) ON DELETE SET NULL,
+    tipo TEXT NOT NULL, -- 'email_confirmacion', 'whatsapp_alerta', 'resumen_admin'
+    proveedor TEXT NOT NULL, -- 'resend', 'whatsapp'
+    destinatario TEXT NOT NULL, -- Correo o teléfono
+    asunto TEXT,
+    estado TEXT DEFAULT 'enviado' NOT NULL, -- 'enviado', 'fallido', 'simulado_sin_api_key'
+    error_mensaje TEXT,
+    detalles JSONB DEFAULT '{}'::JSONB,
+    creado_en TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 5. Índices para consultas de alto rendimiento
+CREATE INDEX IF NOT EXISTS idx_cotizaciones_creado_en ON public.ichin_cotizaciones (creado_en DESC);
+CREATE INDEX IF NOT EXISTS idx_cotizaciones_estado ON public.ichin_cotizaciones (estado);
+CREATE INDEX IF NOT EXISTS idx_leads_creado_en ON public.leads (creado_en DESC);
+CREATE INDEX IF NOT EXISTS idx_notificaciones_cotizacion ON public.notificaciones (cotizacion_id);
+
+-- 6. Habilitar Seguridad por Filas (Row Level Security - RLS)
 ALTER TABLE public.ichin_cotizaciones ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.leads ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.notificaciones ENABLE ROW LEVEL SECURITY;
 
--- 5. Conceder permisos de acceso a los roles de Supabase
+-- 7. Concesión de Permisos
 GRANT ALL ON public.ichin_cotizaciones TO anon, authenticated, service_role;
 GRANT ALL ON public.leads TO anon, authenticated, service_role;
+GRANT ALL ON public.notificaciones TO anon, authenticated, service_role;
 
--- 6. POLÍTICAS DE ACCESO: ichin_cotizaciones
--- Permitir que usuarios desde la web pública envíen cotizaciones
-DROP POLICY IF EXISTS "Permitir insercion anonima de cotizaciones" ON public.ichin_cotizaciones;
-CREATE POLICY "Permitir insercion anonima de cotizaciones" 
+-- 8. Políticas RLS para ichin_cotizaciones
+DROP POLICY IF EXISTS "Permitir insercion de cotizaciones" ON public.ichin_cotizaciones;
+CREATE POLICY "Permitir insercion de cotizaciones" 
 ON public.ichin_cotizaciones 
 FOR INSERT 
 TO anon, authenticated 
 WITH CHECK (true);
 
--- Permitir lectura de cotizaciones (para confirmaciones inmediatas y panel)
 DROP POLICY IF EXISTS "Permitir lectura de cotizaciones" ON public.ichin_cotizaciones;
 CREATE POLICY "Permitir lectura de cotizaciones" 
 ON public.ichin_cotizaciones 
@@ -63,19 +88,32 @@ FOR SELECT
 TO anon, authenticated 
 USING (true);
 
--- 7. POLÍTICAS DE ACCESO: leads
--- Permitir que las cotizaciones y pedidos del carrito se registren como leads
-DROP POLICY IF EXISTS "Permitir insercion anonima de leads" ON public.leads;
-CREATE POLICY "Permitir insercion anonima de leads" 
+-- 9. Políticas RLS para leads
+DROP POLICY IF EXISTS "Permitir insercion de leads" ON public.leads;
+CREATE POLICY "Permitir insercion de leads" 
 ON public.leads 
 FOR INSERT 
 TO anon, authenticated 
 WITH CHECK (true);
 
--- Permitir lectura de leads
 DROP POLICY IF EXISTS "Permitir lectura de leads" ON public.leads;
 CREATE POLICY "Permitir lectura de leads" 
 ON public.leads 
+FOR SELECT 
+TO anon, authenticated 
+USING (true);
+
+-- 10. Políticas RLS para notificaciones
+DROP POLICY IF EXISTS "Permitir insercion de notificaciones" ON public.notificaciones;
+CREATE POLICY "Permitir insercion de notificaciones" 
+ON public.notificaciones 
+FOR INSERT 
+TO anon, authenticated 
+WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Permitir lectura de notificaciones" ON public.notificaciones;
+CREATE POLICY "Permitir lectura de notificaciones" 
+ON public.notificaciones 
 FOR SELECT 
 TO anon, authenticated 
 USING (true);

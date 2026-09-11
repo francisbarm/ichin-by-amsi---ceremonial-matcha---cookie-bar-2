@@ -8,6 +8,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 export interface CotizacionPayload {
   cliente_nombre: string;
   cliente_telefono: string;
+  cliente_email?: string;
   tipo_evento?: string;
   fecha_evento?: string;
   lugar_evento?: string;
@@ -31,6 +32,7 @@ export async function guardarCotizacionSupabase(data: CotizacionPayload) {
         {
           cliente_nombre: data.cliente_nombre,
           cliente_telefono: data.cliente_telefono,
+          cliente_email: data.cliente_email || null,
           tipo_evento: data.tipo_evento || 'Evento General',
           fecha_evento: data.fecha_evento || 'Por definir',
           lugar_evento: data.lugar_evento || 'Caracas',
@@ -55,6 +57,7 @@ export async function guardarCotizacionSupabase(data: CotizacionPayload) {
       {
         nombre: data.cliente_nombre || 'Cliente Web ICHIN',
         telefono: data.cliente_telefono || 'No indicado',
+        email: data.cliente_email || null,
         origen: 'web_cotizador_ichin',
         tipo: 'catering_matcha',
         estado: 'nuevo',
