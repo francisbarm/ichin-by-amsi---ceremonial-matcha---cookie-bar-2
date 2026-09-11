@@ -34,7 +34,8 @@ export default function App() {
     const milkSurcharge = customization?.milk && (customization.milk.includes('Avena') || customization.milk.includes('Almendra')) ? 0.5 : 0;
     const shotSurcharge = customization?.extraShot ? 1.0 : 0;
     const foamSurcharge = customization?.coldFoam ? 0.75 : 0;
-    const unitPrice = item.price + milkSurcharge + shotSurcharge + foamSurcharge;
+    const charmSurcharge = customization?.charmPiece && customization.charmPiece !== 'Sin Charm' ? 1.0 : 0;
+    const unitPrice = item.price + milkSurcharge + shotSurcharge + foamSurcharge + charmSurcharge;
     const subtotal = unitPrice * quantity;
 
     const newCartItem: CartOrderItem = {

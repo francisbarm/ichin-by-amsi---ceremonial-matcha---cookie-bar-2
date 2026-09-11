@@ -21,6 +21,7 @@ export interface OrderCustomization {
   iceLevel?: 'Normal' | 'Poco Hielo' | 'Sin Hielo' | 'Extra Frío';
   extraShot?: boolean;
   coldFoam?: boolean;
+  charmPiece?: string;
   notes?: string;
 }
 
@@ -68,6 +69,9 @@ export interface EventQuoteState {
   specialRequests: string;
   customSignagePhrase?: string;
   cupOption?: 'pet_cristal' | 'personalizados' | 'vidrio_solicitud';
+  terraceFurniture?: 'ninguno' | 'toldos_sombrilla' | 'mesas_altas' | 'lounge_completo';
+  drinkCharmsCustomization?: boolean;
+  drinkCharmsTheme?: 'mix_sorpresa' | 'ositos_teddy' | 'halloween' | 'navidad' | 'mini_foodie' | 'glow_animals' | 'gemas_cristal';
 }
 
 export interface BookingRecord {

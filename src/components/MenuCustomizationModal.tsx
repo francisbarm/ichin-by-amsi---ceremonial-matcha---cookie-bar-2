@@ -30,13 +30,15 @@ export const MenuCustomizationModal: React.FC<MenuCustomizationModalProps> = ({
   const [iceLevel, setIceLevel] = useState<'Normal' | 'Poco Hielo' | 'Sin Hielo' | 'Extra Frío'>('Normal');
   const [extraShot, setExtraShot] = useState<boolean>(false);
   const [coldFoam, setColdFoam] = useState<boolean>(false);
+  const [selectedCharm, setSelectedCharm] = useState<string>('Sin Charm');
   const [notes, setNotes] = useState<string>('');
 
-  // Calculate unit price with add-ons (Milks included without surcharge)
+  // Calculate unit price with add-ons
   const milkSurcharge = 0;
   const extraShotSurcharge = extraShot ? 1.0 : 0;
   const coldFoamSurcharge = coldFoam ? 0.75 : 0;
-  const unitPrice = item.price + milkSurcharge + extraShotSurcharge + coldFoamSurcharge;
+  const charmSurcharge = selectedCharm !== 'Sin Charm' ? 1.0 : 0;
+  const unitPrice = item.price + milkSurcharge + extraShotSurcharge + coldFoamSurcharge + charmSurcharge;
   const totalPrice = unitPrice * quantity;
 
   const handleConfirm = () => {
@@ -46,6 +48,7 @@ export const MenuCustomizationModal: React.FC<MenuCustomizationModalProps> = ({
       iceLevel: isDrink ? iceLevel : undefined,
       extraShot: isDrink ? extraShot : undefined,
       coldFoam: isDrink ? coldFoam : undefined,
+      charmPiece: selectedCharm !== 'Sin Charm' ? selectedCharm : undefined,
       notes: notes.trim() || undefined,
     });
     onClose();
@@ -227,19 +230,90 @@ export const MenuCustomizationModal: React.FC<MenuCustomizationModalProps> = ({
             </>
           )}
 
-          {/* Notas especiales */}
-          <div>
-            <label className="block text-xs font-bold text-[#3C4A3C] uppercase tracking-wider mb-1">
-              Instrucciones Especiales
-            </label>
-            <input
-              type="text"
-              placeholder="Ej. Servir con pitillo de bambú, poco dulce..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-3.5 py-2.5 text-xs bg-white border border-[#E6DFD4] rounded-xl focus:outline-none focus:border-[#7A8E77] text-[#3C4A3C]"
-            />
-          </div>
+          {/* Personalización de Bebida con Charm Coleccionable & Gemas */}
+              <div className="pt-2 border-t border-[#E6DFD4]">
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-bold text-[#3C4A3C] uppercase tracking-wider">
+                    {isDrink ? 'Personalización de Vaso con Charm o Gemas' : 'Topper Temático de Pastelería'}
+                  </label>
+                  <span className="text-[11px] font-bold text-[#B69C76] bg-[#F4EFE6] px-2 py-0.5 rounded-full border border-[#E3DAC9]">
+                    +$1.00 / pieza
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#6D756A] mb-3">
+                  {isDrink 
+                    ? 'Agrega un dije coleccionable exclusivo o gemas 3D a tu vaso como recuerdo o distintivo para tu evento.'
+                    : 'Añade un topper decorativo de temporada para complementar tus galletas y cupcakes.'}
+                </p>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {[
+                    { id: 'Sin Charm', label: 'Sin Personalización', img: '', price: 0, tag: 'Estándar' },
+                    ...(isDrink ? [
+                      { id: 'Ositos Kawaii', label: 'Ositos Teddy Kawaii', img: '/branding/charms/charms-ositos-kawaii.jpg', price: 1.0, tag: 'Bebida + Dije' },
+                      { id: 'Bear Hug con Tarjeta', label: 'Teddy "A Bear Hug"', img: '/branding/charms/charms-ositos-bear-hug.jpg', price: 1.0, tag: 'Recuerdo VIP' },
+                      { id: 'Gummy Bears Cristal', label: 'Ositos Gummy Cristalinos', img: '/branding/charms/charms-gummy-bears-cristal.jpg', price: 1.0, tag: 'Color Pop' },
+                      { id: 'Fantasmitas Spooky', label: 'Fantasmitas Spooky Cute', img: '/branding/charms/charms-halloween-fantasmitas.jpg', price: 1.0, tag: 'Halloween' },
+                      { id: 'Navidad Festiva', label: 'Navideño & Santa Claus', img: '/branding/charms/charms-navidad-festivo.jpg', price: 1.0, tag: 'Navidad' },
+                      { id: 'Mini Foodie & Mystery', label: 'Mini Foodie & Mystery', img: '/branding/charms/charms-mini-foodie.jpg', price: 1.0, tag: 'Boba & Bakery' },
+                      { id: 'Glow in the Dark', label: 'Animalitos Glow in Dark', img: '/branding/charms/charms-glow-animals.jpg', price: 1.0, tag: 'Fluorescente' },
+                      { id: 'Gemas 3D & Cristales', label: 'Gemas 3D & Cristales', img: '/branding/charms/charms-gemas-cristales.jpg', price: 1.0, tag: 'Bling Vaso' },
+                    ] : [
+                      { id: 'Toppers Calabaza Otoño', label: 'Topper Calabacita Otoño', img: '/branding/charms/bakery-toppers-calabaza.jpg', price: 1.0, tag: 'Cupcakes & Cookies' },
+                    ])
+                  ].map((charm) => {
+                    const isSelected = selectedCharm === charm.id;
+                    return (
+                      <button
+                        key={charm.id}
+                        type="button"
+                        onClick={() => setSelectedCharm(charm.id)}
+                        className={`relative p-2 rounded-2xl border text-left transition-all flex flex-col justify-between overflow-hidden ${
+                          isSelected
+                            ? 'bg-[#FAF8F4] border-[#455546] ring-2 ring-[#455546]/20 shadow-sm'
+                            : 'bg-white border-[#E6DFD4] hover:border-[#7A8E77]'
+                        }`}
+                      >
+                        {charm.img ? (
+                          <div className="w-full aspect-[4/3] rounded-xl overflow-hidden mb-1.5 bg-[#FAF8F4] border border-[#E6DFD4]/50">
+                            <img src={charm.img} alt={charm.label} className="w-full h-full object-cover" />
+                          </div>
+                        ) : (
+                          <div className="w-full aspect-[4/3] rounded-xl mb-1.5 bg-[#F3EFE7] flex items-center justify-center text-xs text-[#7A8E77]">
+                            <span>Vaso Clásico</span>
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="text-[11px] font-bold text-[#3C4A3C] leading-tight line-clamp-1">
+                            {charm.label}
+                          </span>
+                          {isSelected && <Check className="w-3.5 h-3.5 text-[#455546] shrink-0" />}
+                        </div>
+                        <div className="flex items-center justify-between text-[10px] mt-1 text-[#6D756A]">
+                          <span>{charm.tag}</span>
+                          <span className={charm.price > 0 ? 'font-bold text-[#B69C76]' : 'text-gray-400'}>
+                            {charm.price > 0 ? '+$1.00' : 'Incluido'}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Notas especiales */}
+              <div>
+                <label className="block text-xs font-bold text-[#3C4A3C] uppercase tracking-wider mb-1">
+                  Instrucciones Especiales
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ej. Servir con pitillo de bambú, poco dulce..."
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-[#E6DFD4] rounded-xl focus:outline-none focus:border-[#7A8E77] text-[#3C4A3C]"
+                />
+              </div>
         </div>
 
         {/* Footer Actions */}
@@ -273,7 +347,7 @@ export const MenuCustomizationModal: React.FC<MenuCustomizationModalProps> = ({
           >
             <span>Agregar a la Selección para Evento</span>
             <span className="text-[#D4BE9B] font-extrabold text-xs">
-              {quantity} {quantity === 1 ? 'unidad' : 'unidades'}
+              {quantity} {quantity === 1 ? 'unidad' : 'unidades'} • ${totalPrice.toFixed(2)}
             </span>
           </button>
         </div>

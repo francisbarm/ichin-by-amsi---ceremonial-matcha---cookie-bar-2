@@ -10,6 +10,8 @@ interface EmailQuotePayload {
   eventTime?: string;
   locationZone: string;
   setupTheme?: string;
+  terraceFurniture?: string;
+  drinkCharms?: string;
   addons?: string[];
   signagePhrase?: string;
   cotizacionId?: string;
@@ -82,6 +84,16 @@ export function generarHtmlCotizacion(data: EmailQuotePayload): string {
             <td style="padding: 10px 0; font-size: 13px; color: #7A8E77;">Zona en Caracas:</td>
             <td style="padding: 10px 0; font-size: 13px; font-weight: bold; color: #3C4A3C; text-align: right;">${data.locationZone}</td>
           </tr>
+          ${data.terraceFurniture ? `
+          <tr style="border-bottom: 1px solid #EBE4D8;">
+            <td style="padding: 10px 0; font-size: 13px; color: #7A8E77;">Mobiliario & Toldos:</td>
+            <td style="padding: 10px 0; font-size: 13px; font-weight: bold; color: #3C4A3C; text-align: right;">${data.terraceFurniture}</td>
+          </tr>` : ''}
+          ${data.drinkCharms ? `
+          <tr style="border-bottom: 1px solid #EBE4D8;">
+            <td style="padding: 10px 0; font-size: 13px; color: #7A8E77;">Charms & Dijs en Bebidas (+$1/pz):</td>
+            <td style="padding: 10px 0; font-size: 13px; font-weight: bold; color: #3C4A3C; text-align: right;">${data.drinkCharms}</td>
+          </tr>` : ''}
           ${data.signagePhrase ? `
           <tr style="border-bottom: 1px solid #EBE4D8;">
             <td style="padding: 10px 0; font-size: 13px; color: #7A8E77;">Frase en Pizarra de Bienvenida:</td>

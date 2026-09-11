@@ -489,6 +489,237 @@ export const CartShowcaseScreen: React.FC<CartShowcaseScreenProps> = ({
         </div>
       </div>
 
+      {/* SECTION: MOBILIARIO DE TERRAZA & TOLDOS LOUNGE */}
+      <div className="bg-white rounded-3xl p-5 sm:p-8 border border-[#E6DFD4] shadow-sm mb-12 overflow-hidden">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
+          <div>
+            <span className="px-3 py-1 rounded-full bg-[#B69C76]/15 text-[#8C6D3F] text-[10px] font-bold uppercase tracking-wider">
+              Nuevo Servicio Complementario • Caracas
+            </span>
+            <h2 className="text-xl sm:text-2xl font-bold text-[#3C4A3C] mt-1.5 font-editorial">
+              Mobiliario de Terraza, Toldos Riviera & Mesas Altas
+            </h2>
+          </div>
+          <button
+            onClick={onGoToQuoter}
+            className="py-2 px-5 rounded-full bg-[#455546] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#384639] transition-all shrink-0 flex items-center gap-1.5 shadow-xs"
+          >
+            <span>Cotizar con Mobiliario</span>
+            <ArrowRight className="w-3.5 h-3.5 text-[#D4BE9B]" />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          {/* Main Photo with Lightbox Trigger */}
+          <div 
+            onClick={() => setLightboxImage('/branding/mobiliario-toldos-terrazas-vip.jpg')}
+            className="lg:col-span-7 group relative rounded-2xl overflow-hidden aspect-[16/10] border border-[#E6DFD4] cursor-pointer shadow-md"
+          >
+            <img 
+              src="/branding/mobiliario-toldos-terrazas-vip.jpg" 
+              alt="Montaje de Terraza con Toldos Sombrilla y Mesas Altas con vista al Ávila" 
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent flex flex-col justify-end p-5">
+              <span className="text-[10px] uppercase font-bold text-[#D4BE9B] tracking-widest">Terraza & Mirador Caracas</span>
+              <span className="text-white text-base sm:text-lg font-bold">Montaje Riviera Chic frente al Ávila</span>
+              <span className="text-white/80 text-xs mt-1">Haz clic para ampliar la fotografía</span>
+            </div>
+            <div className="absolute top-3 right-3 bg-black/50 text-white text-xs px-2.5 py-1 rounded-full backdrop-blur-xs flex items-center gap-1">
+              <Eye className="w-3 h-3 text-[#D4BE9B]" />
+              <span>Ver Foto</span>
+            </div>
+          </div>
+
+          {/* Feature List */}
+          <div className="lg:col-span-5 space-y-4">
+            <div className="p-4 rounded-2xl bg-[#FAF8F4] border border-[#E6DFD4]">
+              <div className="font-bold text-xs text-[#3C4A3C] flex items-center gap-2 mb-1">
+                <span>⛱️</span>
+                <span>Toldos Sombrilla Riviera</span>
+              </div>
+              <p className="text-xs text-[#6A7869] leading-relaxed">
+                Sombrillas de lona blanca con flecos bohemios de diseño resort. Protegen del sol en exteriores y brindan una estética impecable para fotos.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-[#FAF8F4] border border-[#E6DFD4]">
+              <div className="font-bold text-xs text-[#3C4A3C] flex items-center gap-2 mb-1">
+                <span>🥂</span>
+                <span>Mesas Altas Cocteleras & Taburetes</span>
+              </div>
+              <p className="text-xs text-[#6A7869] leading-relaxed">
+                Estaciones de pie con taburetes altos blancos para degustar matcha y galletas mientras los invitados conversan dinámicamente.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-[#FAF8F4] border border-[#E6DFD4]">
+              <div className="font-bold text-xs text-[#3C4A3C] flex items-center gap-2 mb-1">
+                <span>✨</span>
+                <span>Salas Lounge & Mesas Bajas</span>
+              </div>
+              <p className="text-xs text-[#6A7869] leading-relaxed">
+                Mesas circulares con sillas medallón blancas y esferas cromadas plateadas para ambientar miradores y jardines.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* SECTION: BARRA DE CHARMS, DIJES Y GEMAS PERSONALIZADAS ($1 / PIEZA) */}
+      <div className="bg-white rounded-3xl p-5 sm:p-8 border border-[#E6DFD4] shadow-sm mb-12">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-6">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#B69C76]/15 text-[#3C4A3C] text-[11px] font-bold uppercase tracking-wider mb-2 border border-[#B69C76]/25">
+              <span>✨</span>
+              <span>Tendencia Viral en Caracas • $1 por pieza</span>
+            </div>
+            <h3 className="text-xl sm:text-3xl font-bold text-[#3C4A3C] font-editorial">
+              Barra de Charms, Dijs & Gemas para Vasos
+            </h3>
+          </div>
+          <div className="mt-3 md:mt-0 flex items-center gap-2">
+            <button
+              onClick={onGoToQuoter}
+              className="py-2.5 px-5 rounded-full bg-[#455546] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#384639] transition-all flex items-center gap-1.5 shadow-sm"
+            >
+              <span>Cotizar con Charms</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+
+        <p className="text-xs sm:text-sm text-[#525B4F] max-w-3xl mb-6 leading-relaxed">
+          Transforma cada bebida en una pieza interactiva de diseño. Tus invitados eligen dijs coleccionables en mini elásticas para el vaso o aplican gemas de cristal 3D como distintivo personalizado y recuerdo para llevar a casa.
+        </p>
+
+        {/* Gallery of Charms Collections */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div 
+            onClick={() => setLightboxImage('/branding/charms/charms-ositos-kawaii.jpg')}
+            className="group relative rounded-2xl overflow-hidden aspect-[4/3] border border-[#E6DFD4] cursor-pointer"
+          >
+            <img 
+              src="/branding/charms/charms-ositos-kawaii.jpg" 
+              alt="Charms Ositos Kawaii y Bear Hug" 
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-3">
+              <span className="text-[10px] uppercase font-bold text-[#D4BE9B]">Bodas & Cumpleaños</span>
+              <span className="text-white text-xs font-semibold">Colección Ositos & Bear Hug</span>
+            </div>
+          </div>
+
+          <div 
+            onClick={() => setLightboxImage('/branding/charms/charms-halloween-fantasmitas.jpg')}
+            className="group relative rounded-2xl overflow-hidden aspect-[4/3] border border-[#E6DFD4] cursor-pointer"
+          >
+            <img 
+              src="/branding/charms/charms-halloween-fantasmitas.jpg" 
+              alt="Fantasmitas Spooky Cute" 
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-3">
+              <span className="text-[10px] uppercase font-bold text-[#D4BE9B]">Edición Halloween</span>
+              <span className="text-white text-xs font-semibold">Fantasmitas Spooky Cute</span>
+            </div>
+          </div>
+
+          <div 
+            onClick={() => setLightboxImage('/branding/charms/charms-navidad-festivo.jpg')}
+            className="group relative rounded-2xl overflow-hidden aspect-[4/3] border border-[#E6DFD4] cursor-pointer"
+          >
+            <img 
+              src="/branding/charms/charms-navidad-festivo.jpg" 
+              alt="Colección Navideña" 
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-3">
+              <span className="text-[10px] uppercase font-bold text-[#D4BE9B]">Temporada Decembrina</span>
+              <span className="text-white text-xs font-semibold">Navidad & Figuras Festivas</span>
+            </div>
+          </div>
+
+          <div 
+            onClick={() => setLightboxImage('/branding/charms/charms-gemas-cristales.jpg')}
+            className="group relative rounded-2xl overflow-hidden aspect-[4/3] border border-[#E6DFD4] cursor-pointer"
+          >
+            <img 
+              src="/branding/charms/charms-gemas-cristales.jpg" 
+              alt="Gemas y Cristales 3D" 
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-3">
+              <span className="text-[10px] uppercase font-bold text-[#D4BE9B]">Bling & Estilo</span>
+              <span className="text-white text-xs font-semibold">Gemas 3D & Cristales Adhesivos</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Secondary Charm Highlights */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
+          <div 
+            onClick={() => setLightboxImage('/branding/charms/charms-mini-foodie.jpg')}
+            className="group relative rounded-2xl overflow-hidden aspect-[4/3] border border-[#E6DFD4] cursor-pointer"
+          >
+            <img 
+              src="/branding/charms/charms-mini-foodie.jpg" 
+              alt="Mini Foodie y Boba" 
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-3">
+              <span className="text-[10px] uppercase font-bold text-[#D4BE9B]">Mystery Bags</span>
+              <span className="text-white text-xs font-semibold">Mini Foodie & Donuts</span>
+            </div>
+          </div>
+
+          <div 
+            onClick={() => setLightboxImage('/branding/charms/charms-glow-animals.jpg')}
+            className="group relative rounded-2xl overflow-hidden aspect-[4/3] border border-[#E6DFD4] cursor-pointer"
+          >
+            <img 
+              src="/branding/charms/charms-glow-animals.jpg" 
+              alt="Glow in the Dark Animals" 
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-3">
+              <span className="text-[10px] uppercase font-bold text-[#D4BE9B]">Efecto Nocturno</span>
+              <span className="text-white text-xs font-semibold">Animalitos Fluorescentes</span>
+            </div>
+          </div>
+
+          <div 
+            onClick={() => setLightboxImage('/branding/charms/charms-gummy-bears-cristal.jpg')}
+            className="group relative rounded-2xl overflow-hidden aspect-[4/3] border border-[#E6DFD4] cursor-pointer"
+          >
+            <img 
+              src="/branding/charms/charms-gummy-bears-cristal.jpg" 
+              alt="Gummy Bears Cristalinos" 
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-3">
+              <span className="text-[10px] uppercase font-bold text-[#D4BE9B]">Color Pop</span>
+              <span className="text-white text-xs font-semibold">Ositos Gummy Cristal</span>
+            </div>
+          </div>
+
+          <div 
+            onClick={() => setLightboxImage('/branding/charms/bakery-toppers-calabaza.jpg')}
+            className="group relative rounded-2xl overflow-hidden aspect-[4/3] border border-[#E6DFD4] cursor-pointer"
+          >
+            <img 
+              src="/branding/charms/bakery-toppers-calabaza.jpg" 
+              alt="Toppers de Calabaza Pastelería" 
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-3">
+              <span className="text-[10px] uppercase font-bold text-[#D4BE9B]">Bakery & Cupcakes</span>
+              <span className="text-white text-xs font-semibold">Toppers Calabazas de Otoño</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Real-world events photo showcase banner with user's official photographs */}
       <div className="bg-white rounded-3xl p-5 sm:p-8 border border-[#E6DFD4] shadow-sm">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-6">

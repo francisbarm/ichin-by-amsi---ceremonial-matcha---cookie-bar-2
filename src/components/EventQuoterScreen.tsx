@@ -4,7 +4,8 @@ import { EVENT_PACKAGES, CARACAS_ZONES } from '../data/eventPackages';
 import { 
   Sparkles, Check, Users, Clock, MapPin, Calendar, 
   Send, ChevronRight, ChevronLeft, ShieldCheck, 
-  Coffee, Award, Heart, MessageCircle, Mail 
+  Coffee, Award, Heart, MessageCircle, Mail,
+  Printer, ChevronDown, ChevronUp, HelpCircle, CheckCircle2
 } from 'lucide-react';
 import { guardarCotizacionSupabase } from '../lib/supabase';
 import { enviarCorreoCotizacionResend } from '../services/resendService';
@@ -24,6 +25,7 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
   initialQuoteParams 
 }) => {
   const [currentStep, setCurrentStep] = useState<number>(1);
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
   const [quoteState, setQuoteState] = useState<EventQuoteState>(() => ({
     eventType: (initialQuoteParams?.eventType as any) || 'Boda',
     guestCount: initialQuoteParams?.guestCount || 60,
@@ -45,6 +47,9 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
     specialRequests: '',
     customSignagePhrase: 'GOOD HABITS, BETTER DAYS ♡',
     cupOption: 'pet_cristal',
+    terraceFurniture: 'ninguno',
+    drinkCharmsCustomization: false,
+    drinkCharmsTheme: 'mix_sorpresa',
   }));
 
   React.useEffect(() => {
@@ -90,6 +95,9 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
   const extraDrinks = Math.max(0, neededDrinks - selectedPkg.includedDrinks);
   const extraDrinksCost = extraDrinks * 8.0;
 
+  // Charms / Personalización de Bebidas (+$1.00 por pieza/invitado)
+  const charmsCost = quoteState.drinkCharmsCustomization ? quoteState.guestCount * 1.0 : 0;
+
   const subtotal =
     basePrice +
     extraHoursCost +
@@ -97,7 +105,8 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
     customCupsCost +
     coldFoamCost +
     signatureDrinkCost +
-    extraDrinksCost;
+    extraDrinksCost +
+    charmsCost;
 
   const travelFee = 0; // Included within Gran Caracas
   const grandTotal = Math.round(subtotal + travelFee);
@@ -121,6 +130,28 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
       createdAt: 'Hace un momento',
     };
 
+    const getFurnitureLabel = (furniture?: string) => {
+      if (furniture === 'lounge_completo') return 'Montaje Lounge Completo (Toldos Riviera + Mesas Altas + Taburetes Blancos + Sillas Medallón)';
+      if (furniture === 'mesas_altas') return 'Set de Mesas Altas Cocteleras & Taburetes Blancos';
+      if (furniture === 'toldos_sombrilla') return 'Set de Toldos Sombrilla Riviera (Lona blanca con flecos)';
+      return '';
+    };
+
+    const getCharmsThemeLabel = (theme?: string) => {
+      if (theme === 'ositos_teddy') return 'Colección Ositos Teddy Kawaii & Bear Hug';
+      if (theme === 'halloween') return 'Colección Spooky Cute Fantasmitas (Halloween/Otoño)';
+      if (theme === 'navidad') return 'Colección Navideña (Santa, Renos & Pinos)';
+      if (theme === 'mini_foodie') return 'Colección Mini Foodie & Mystery Bag (Donas & Boba)';
+      if (theme === 'glow_animals') return 'Colección Animalitos Fluorescentes (Glow in the Dark)';
+      if (theme === 'gemas_cristal') return 'Estación Gemas 3D & Cristales Autoadhesivos';
+      return 'Mix Sorpresa de Charms & Dijs Coleccionables';
+    };
+
+    const furnitureText = getFurnitureLabel(quoteState.terraceFurniture);
+    const charmsText = quoteState.drinkCharmsCustomization 
+      ? `Personalización de Bebidas: ${getCharmsThemeLabel(quoteState.drinkCharmsTheme)} (${quoteState.guestCount} pzs x $1 = +$${quoteState.guestCount})`
+      : '';
+
     // Guardar asíncronamente en Supabase (tabla ichin_cotizaciones y leads de AMSI CRM)
     guardarCotizacionSupabase({
       cliente_nombre: quoteState.clientName.trim() || 'Cliente Distinguido',
@@ -137,6 +168,8 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
         quoteState.coldFoamBar ? 'Barra de Espumas Frías' : '',
         quoteState.signatureDrink ? 'Bebida de Autor Exclusiva' : '',
         quoteState.customBrandedCups ? 'Vasos Personalizados con Logo' : '',
+        furnitureText ? `Mobiliario: ${furnitureText}` : '',
+        charmsText ? charmsText : '',
       ].filter(Boolean),
       notas_adicionales: `Frase en pizarra: "${quoteState.customSignagePhrase}". Código: ${bookingCode}`,
       resumen_items: {
@@ -144,6 +177,8 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
         bebidasBase: selectedPkg.drinksCount,
         horas: quoteState.serviceHours,
         opcionVasos: quoteState.cupOption,
+        mobiliario: quoteState.terraceFurniture || 'ninguno',
+        charms: quoteState.drinkCharmsCustomization ? quoteState.drinkCharmsTheme : 'no',
       },
     });
 
@@ -159,11 +194,15 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
         eventTime: quoteState.eventTime,
         locationZone: quoteState.locationZone,
         setupTheme: quoteState.setupColorTheme,
+        terraceFurniture: furnitureText || undefined,
+        drinkCharms: charmsText || undefined,
         addons: [
           quoteState.includeCookies ? `Cookies artesanales horneadas al día (${selectedPkg.cookieCount})` : '',
           quoteState.coldFoamBar ? 'Estación de Espumas Frías (Matcha Cold Foam)' : '',
           quoteState.signatureDrink ? 'Bebida de Autor Exclusiva del Evento' : '',
           quoteState.customBrandedCups ? 'Vasos Personalizados con Logo/Monograma' : '',
+          furnitureText ? `Mobiliario de Terraza: ${furnitureText}` : '',
+          charmsText ? charmsText : '',
         ].filter(Boolean),
         signagePhrase: quoteState.customSignagePhrase,
       });
@@ -181,6 +220,29 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
         ? 'Cristalería en Vidrio (Bajo Solicitud)' 
         : 'Vasos PET Cristalinos Premium';
 
+    const furnitureText = 
+      quoteState.terraceFurniture === 'lounge_completo'
+        ? 'Montaje Lounge Completo (Toldos Riviera + Mesas Altas + Taburetes + Sillas Medallón)'
+        : quoteState.terraceFurniture === 'mesas_altas'
+        ? 'Set de Mesas Altas Cocteleras & Taburetes Blancos'
+        : quoteState.terraceFurniture === 'toldos_sombrilla'
+        ? 'Set de Toldos Sombrilla Riviera (Lona blanca con flecos)'
+        : '';
+
+    const getCharmsThemeLabel = (theme?: string) => {
+      if (theme === 'ositos_teddy') return 'Colección Ositos Teddy Kawaii & Bear Hug';
+      if (theme === 'halloween') return 'Colección Spooky Cute Fantasmitas (Halloween/Otoño)';
+      if (theme === 'navidad') return 'Colección Navideña (Santa, Renos & Pinos)';
+      if (theme === 'mini_foodie') return 'Colección Mini Foodie & Mystery Bag (Donas & Boba)';
+      if (theme === 'glow_animals') return 'Colección Animalitos Fluorescentes (Glow in the Dark)';
+      if (theme === 'gemas_cristal') return 'Estación Gemas 3D & Cristales Autoadhesivos';
+      return 'Mix Sorpresa de Charms & Dijs Coleccionables';
+    };
+
+    const charmsText = quoteState.drinkCharmsCustomization 
+      ? `Personalización de Bebidas: ${getCharmsThemeLabel(quoteState.drinkCharmsTheme)} (${quoteState.guestCount} pzs x $1 = +$${quoteState.guestCount})`
+      : '';
+
     // Guardar en Supabase y abrir WhatsApp oficial
     guardarCotizacionSupabase({
       cliente_nombre: quoteState.clientName.trim() || 'Cliente WhatsApp Directo',
@@ -197,11 +259,15 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
         quoteState.coldFoamBar ? 'Barra de Espumas Frías' : '',
         quoteState.signatureDrink ? 'Bebida de Autor Exclusiva' : '',
         quoteState.customBrandedCups ? 'Vasos Personalizados con Logo' : '',
+        furnitureText ? `Mobiliario: ${furnitureText}` : '',
+        charmsText ? charmsText : '',
       ].filter(Boolean),
       notas_adicionales: `Contacto WhatsApp Directo. Pizarra: "${quoteState.customSignagePhrase || 'GOOD HABITS, BETTER DAYS ♡'}"`,
       resumen_items: {
         tipo: 'whatsapp_directo',
         bebidas: selectedPkg.drinksCount,
+        mobiliario: quoteState.terraceFurniture || 'ninguno',
+        charms: quoteState.drinkCharmsCustomization ? quoteState.drinkCharmsTheme : 'no',
       },
     });
 
@@ -218,6 +284,8 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
       locationZone: quoteState.locationZone,
       customSignagePhrase: quoteState.customSignagePhrase,
       cupOptionLabel: cupLabel,
+      terraceFurnitureLabel: furnitureText || undefined,
+      charmsCustomizationLabel: charmsText || undefined,
     });
   };
 
@@ -302,6 +370,26 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
               <span className="text-gray-500">Horas de servicio:</span>
               <span className="font-bold text-[#3C4A3C]">{quoteState.serviceHours} horas continuas</span>
             </div>
+            {quoteState.terraceFurniture && quoteState.terraceFurniture !== 'ninguno' && (
+              <div className="flex justify-between border-b border-[#E6DFD4] pb-2">
+                <span className="text-gray-500">Mobiliario de Terraza:</span>
+                <span className="font-bold text-[#455546]">
+                  {quoteState.terraceFurniture === 'lounge_completo'
+                    ? 'Lounge Completo (Toldos + Mesas Altas + Sillas)'
+                    : quoteState.terraceFurniture === 'mesas_altas'
+                    ? 'Mesas Altas Cocteleras & Taburetes'
+                    : 'Toldos Sombrilla Riviera'}
+                </span>
+              </div>
+            )}
+            {quoteState.drinkCharmsCustomization && (
+              <div className="flex justify-between border-b border-[#E6DFD4] pb-2">
+                <span className="text-gray-500">Charms & Dijs en Bebidas (+$1/pz):</span>
+                <span className="font-bold text-[#455546]">
+                  {quoteState.guestCount} piezas ({quoteState.drinkCharmsTheme === 'ositos_teddy' ? 'Ositos Teddy' : quoteState.drinkCharmsTheme === 'halloween' ? 'Spooky Cute' : quoteState.drinkCharmsTheme === 'navidad' ? 'Navidad' : quoteState.drinkCharmsTheme === 'mini_foodie' ? 'Mini Foodie' : quoteState.drinkCharmsTheme === 'glow_animals' ? 'Glow in Dark' : quoteState.drinkCharmsTheme === 'gemas_cristal' ? 'Gemas 3D' : 'Mix Sorpresa'})
+                </span>
+              </div>
+            )}
             <div className="flex justify-between pt-1 text-sm font-black">
               <span className="text-[#3C4A3C]">Presupuesto para Evento:</span>
               <span className="text-[#B69C76]">Cotización a Medida</span>
@@ -325,11 +413,19 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
             </button>
 
             <button
+              onClick={() => window.print()}
+              className="py-3 px-5 rounded-full bg-white border border-[#455546] text-[#3C4A3C] font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 hover:bg-[#FAF8F4] transition-all shadow-xs"
+            >
+              <Printer className="w-3.5 h-3.5 text-[#455546]" />
+              <span>Imprimir / PDF</span>
+            </button>
+
+            <button
               onClick={() => {
                 setIsSubmitted(false);
                 setCurrentStep(1);
               }}
-              className="py-3 px-6 rounded-full bg-[#F3EFE7] text-[#3C4A3C] font-semibold text-xs hover:bg-[#E9E4DA] transition-all"
+              className="py-3 px-5 rounded-full bg-[#F3EFE7] text-[#3C4A3C] font-semibold text-xs hover:bg-[#E9E4DA] transition-all"
             >
               Crear otra cotización
             </button>
@@ -669,6 +765,200 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
                         className="w-5 h-5 accent-[#455546] rounded cursor-pointer"
                       />
                     </div>
+
+                    {/* NUEVO: MOBILIARIO DE TERRAZA, TOLDOS Y MESAS ALTAS */}
+                    <div className="p-4 sm:p-5 rounded-2xl border border-[#E6DFD4] bg-[#FAF8F4] space-y-3">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                        <div>
+                          <div className="font-bold text-xs text-[#3C4A3C] flex items-center gap-1.5 uppercase tracking-wider">
+                            <span>☀️</span>
+                            <span>Mobiliario de Terraza & Toldos Lounge (Opcional)</span>
+                          </div>
+                          <p className="text-[11px] text-[#525B4F] mt-0.5">
+                            Ambientación chic para exteriores, vistas al Ávila y jardines en Caracas.
+                          </p>
+                        </div>
+                        <span className="px-2.5 py-0.5 rounded-full bg-[#7A8E77]/20 text-[#3C4A3C] text-[10px] font-bold uppercase tracking-wider shrink-0">
+                          AMSI Lounge • Terrazas
+                        </span>
+                      </div>
+
+                      {/* Tarjeta con Foto Real del Montaje */}
+                      <div className="relative rounded-xl overflow-hidden border border-[#E6DFD4] group h-40">
+                        <img
+                          src="/branding/mobiliario-toldos-terrazas-vip.jpg"
+                          alt="Montaje de Terraza con Toldos Sombrilla y Mesas Altas"
+                          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent flex flex-col justify-end p-3">
+                          <span className="text-[10px] font-bold text-[#D4BE9B] uppercase tracking-widest">Montaje en Terraza con Vista al Ávila</span>
+                          <span className="text-white text-xs font-semibold">Toldos Riviera con flecos, mesas altas cocteleras, taburetes y mesas con sillas medallón</span>
+                        </div>
+                      </div>
+
+                      {/* Opciones de Mobiliario */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setQuoteState({ ...quoteState, terraceFurniture: 'ninguno' })}
+                          className={`p-2.5 rounded-xl border text-left transition-all ${
+                            quoteState.terraceFurniture === 'ninguno' || !quoteState.terraceFurniture
+                              ? 'bg-white border-[#455546] ring-2 ring-[#455546]/20 shadow-xs'
+                              : 'bg-white/60 border-[#E6DFD4]'
+                          }`}
+                        >
+                          <div className="font-bold text-xs text-[#3C4A3C]">Solo Barra Móvil</div>
+                          <div className="text-[10px] text-gray-500">Sin mobiliario exterior</div>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setQuoteState({ ...quoteState, terraceFurniture: 'toldos_sombrilla' })}
+                          className={`p-2.5 rounded-xl border text-left transition-all ${
+                            quoteState.terraceFurniture === 'toldos_sombrilla'
+                              ? 'bg-white border-[#B69C76] ring-2 ring-[#B69C76]/30 shadow-xs'
+                              : 'bg-white/60 border-[#E6DFD4]'
+                          }`}
+                        >
+                          <div className="font-bold text-xs text-[#3C4A3C]">Toldos Sombrilla Riviera</div>
+                          <div className="text-[10px] text-[#B69C76] font-bold">Lona blanca & flecos chic</div>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setQuoteState({ ...quoteState, terraceFurniture: 'mesas_altas' })}
+                          className={`p-2.5 rounded-xl border text-left transition-all ${
+                            quoteState.terraceFurniture === 'mesas_altas'
+                              ? 'bg-white border-[#7A8E77] ring-2 ring-[#7A8E77]/30 shadow-xs'
+                              : 'bg-white/60 border-[#E6DFD4]'
+                          }`}
+                        >
+                          <div className="font-bold text-xs text-[#3C4A3C]">Mesas Altas + Taburetes</div>
+                          <div className="text-[10px] text-[#7A8E77] font-bold">Estaciones cocteleras blancas</div>
+                        </button>
+                      </div>
+
+                      <div>
+                        <button
+                          type="button"
+                          onClick={() => setQuoteState({ ...quoteState, terraceFurniture: 'lounge_completo' })}
+                          className={`w-full p-2.5 rounded-xl border text-left transition-all flex items-center justify-between ${
+                            quoteState.terraceFurniture === 'lounge_completo'
+                              ? 'bg-[#EBF3EA] border-[#7A8E77] ring-2 ring-[#7A8E77]/30 shadow-xs'
+                              : 'bg-white/80 border-[#E6DFD4]'
+                          }`}
+                        >
+                          <div>
+                            <div className="font-bold text-xs text-[#3C4A3C]">✨ Montaje Lounge Completo de Terraza</div>
+                            <div className="text-[10px] text-[#525B4F]">Toldos Riviera + Mesas Altas + Taburetes + Mesas Bajas y Sillas Medallón</div>
+                          </div>
+                          <span className="text-[10px] font-bold text-[#455546] bg-white px-2 py-0.5 rounded-full border border-[#E6DFD4] shrink-0">
+                            Pack Lounge VIP
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* NUEVO: ESTACIÓN DE CHARMS & PERSONALIZACIÓN DE BEBIDAS (+$1.00 / PIEZA) */}
+                    <div className="p-4 sm:p-5 rounded-2xl border border-[#E6DFD4] bg-white space-y-4 shadow-2xs">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                        <div className="flex-1 pr-2">
+                          <div className="font-bold text-xs text-[#3C4A3C] flex items-center gap-1.5 uppercase tracking-wider">
+                            <span>✨</span>
+                            <span>Barra de Charms & Personalización de Bebidas</span>
+                          </div>
+                          <p className="text-[11px] text-[#525B4F] mt-0.5">
+                            Dijs coleccionables, figuritas temáticas y gemas 3D para que cada invitado decore su vaso como recuerdo.
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="px-2.5 py-1 rounded-full bg-[#B69C76]/20 text-[#3C4A3C] text-[11px] font-extrabold tracking-wide shrink-0 border border-[#B69C76]/30">
+                            +$1.00 / pieza
+                          </span>
+                          <input
+                            type="checkbox"
+                            checked={quoteState.drinkCharmsCustomization}
+                            onChange={(e) => setQuoteState({ ...quoteState, drinkCharmsCustomization: e.target.checked })}
+                            className="w-5 h-5 accent-[#455546] rounded cursor-pointer"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Photo Collage / Showcase of Charms */}
+                      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                        <div className="group relative rounded-xl overflow-hidden aspect-square border border-[#E6DFD4]">
+                          <img src="/branding/charms/charms-ositos-kawaii.jpg" alt="Ositos Kawaii" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                          <div className="absolute inset-x-0 bottom-0 bg-black/60 text-[9px] text-white text-center py-0.5 font-semibold">Ositos</div>
+                        </div>
+                        <div className="group relative rounded-xl overflow-hidden aspect-square border border-[#E6DFD4]">
+                          <img src="/branding/charms/charms-halloween-fantasmitas.jpg" alt="Fantasmitas Spooky" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                          <div className="absolute inset-x-0 bottom-0 bg-black/60 text-[9px] text-white text-center py-0.5 font-semibold">Fantasmitas</div>
+                        </div>
+                        <div className="group relative rounded-xl overflow-hidden aspect-square border border-[#E6DFD4]">
+                          <img src="/branding/charms/charms-navidad-festivo.jpg" alt="Navidad" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                          <div className="absolute inset-x-0 bottom-0 bg-black/60 text-[9px] text-white text-center py-0.5 font-semibold">Navidad</div>
+                        </div>
+                        <div className="group relative rounded-xl overflow-hidden aspect-square border border-[#E6DFD4]">
+                          <img src="/branding/charms/charms-mini-foodie.jpg" alt="Mini Foodie" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                          <div className="absolute inset-x-0 bottom-0 bg-black/60 text-[9px] text-white text-center py-0.5 font-semibold">Mini Foodie</div>
+                        </div>
+                        <div className="group relative rounded-xl overflow-hidden aspect-square border border-[#E6DFD4]">
+                          <img src="/branding/charms/charms-glow-animals.jpg" alt="Glow Animals" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                          <div className="absolute inset-x-0 bottom-0 bg-black/60 text-[9px] text-white text-center py-0.5 font-semibold">Glow Noche</div>
+                        </div>
+                        <div className="group relative rounded-xl overflow-hidden aspect-square border border-[#E6DFD4]">
+                          <img src="/branding/charms/charms-gemas-cristales.jpg" alt="Gemas 3D" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                          <div className="absolute inset-x-0 bottom-0 bg-black/60 text-[9px] text-white text-center py-0.5 font-semibold">Gemas 3D</div>
+                        </div>
+                      </div>
+
+                      {/* Theme Selector if active */}
+                      {quoteState.drinkCharmsCustomization ? (
+                        <div className="p-3 bg-[#FAF8F4] rounded-xl border border-[#E6DFD4] space-y-2 animate-in fade-in duration-200">
+                          <label className="block text-[11px] font-bold uppercase tracking-wider text-[#3C4A3C]">
+                            Selecciona la Colección Temática para tu Evento:
+                          </label>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {[
+                              { id: 'mix_sorpresa', label: 'Mix Sorpresa de Temporada', desc: 'Surtido variado para que cada invitado elija' },
+                              { id: 'ositos_teddy', label: 'Ositos Teddy Kawaii & Bear Hug', desc: 'Perfecto para bodas, baby showers y aniversarios' },
+                              { id: 'halloween', label: 'Spooky Cute Fantasmitas', desc: 'Edición especial Halloween y fiestas de octubre' },
+                              { id: 'navidad', label: 'Navidad & Festividades', desc: 'Santa, renos, pinos y bastones de caramelo' },
+                              { id: 'mini_foodie', label: 'Mini Foodie & Mystery Bag', desc: 'Mini donitas, bubble tea, croissants y pasteles' },
+                              { id: 'glow_animals', label: 'Animalitos Fluorescentes (Glow)', desc: 'Brillan en la oscuridad para fiestas nocturnas' },
+                              { id: 'gemas_cristal', label: 'Gemas 3D & Cristales Autoadhesivos', desc: 'Diseños de brillo y diamantes para el vaso' },
+                            ].map((theme) => {
+                              const isSelected = quoteState.drinkCharmsTheme === theme.id;
+                              return (
+                                <button
+                                  key={theme.id}
+                                  type="button"
+                                  onClick={() => setQuoteState({ ...quoteState, drinkCharmsTheme: theme.id as any })}
+                                  className={`p-2 rounded-lg border text-left transition-all ${
+                                    isSelected
+                                      ? 'bg-white border-[#455546] ring-2 ring-[#455546]/20 shadow-xs'
+                                      : 'bg-white/60 border-[#E6DFD4] hover:bg-white'
+                                  }`}
+                                >
+                                  <div className="font-bold text-[11px] text-[#3C4A3C]">{theme.label}</div>
+                                  <div className="text-[10px] text-gray-500">{theme.desc}</div>
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          <div className="pt-2 flex items-center justify-between text-xs font-bold text-[#455546] border-t border-[#E6DFD4]">
+                            <span>Inversión adicional:</span>
+                            <span>{quoteState.guestCount} piezas × $1.00 = +${quoteState.guestCount}.00 USD</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-[11px] text-[#7A8E77] flex items-center gap-1.5">
+                          <Sparkles className="w-3.5 h-3.5" />
+                          <span>Marca la casilla arriba para activar la personalización de bebidas a $1 por pieza.</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="pt-4 flex justify-between">
@@ -903,6 +1193,28 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
                   </div>
                 )}
 
+                {quoteState.terraceFurniture && quoteState.terraceFurniture !== 'ninguno' && (
+                  <div className="flex justify-between text-[#FAF8F4]/90">
+                    <span>Mobiliario de Terraza</span>
+                    <span className="font-semibold text-[#D4BE9B]">
+                      {quoteState.terraceFurniture === 'lounge_completo'
+                        ? 'Lounge Completo'
+                        : quoteState.terraceFurniture === 'mesas_altas'
+                        ? 'Mesas Altas + Taburetes'
+                        : 'Toldos Riviera'}
+                    </span>
+                  </div>
+                )}
+
+                {quoteState.drinkCharmsCustomization && (
+                  <div className="flex justify-between text-[#FAF8F4]/90">
+                    <span>Personalización Charms ({quoteState.guestCount} pzs x $1)</span>
+                    <span className="font-semibold text-[#D4BE9B]">
+                      +${quoteState.guestCount}
+                    </span>
+                  </div>
+                )}
+
                 <div className="flex justify-between text-[#FAF8F4]/90">
                   <span>Traslado y montaje en {quoteState.locationZone.split('/')[0]}</span>
                   <span className="font-bold text-[#9BB098]">INCLUIDO</span>
@@ -944,6 +1256,133 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
 
         </div>
       )}
+
+      {/* SECTION: GUÍA TÉCNICA & REQUERIMIENTOS DE MONTAJE */}
+      <div className="mt-16 bg-white rounded-3xl p-6 sm:p-10 border border-[#E6DFD4] shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-[#E6DFD4] gap-3">
+          <div>
+            <span className="text-xs font-bold uppercase tracking-wider text-[#B69C76]">
+              Ficha de Operaciones & Logística
+            </span>
+            <h3 className="text-xl sm:text-2xl font-bold text-[#3C4A3C] font-editorial">
+              Requerimientos Técnicos para tu Locación en Caracas
+            </h3>
+          </div>
+          <span className="px-3 py-1 rounded-full bg-[#FAF8F4] text-xs font-semibold text-[#525B4F] border border-[#E6DFD4] w-fit">
+            Instalación Llave en Mano
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+          <div className="p-4 rounded-2xl bg-[#FAF8F4] border border-[#E6DFD4]">
+            <div className="w-9 h-9 rounded-xl bg-[#7A8E77]/15 text-[#3C4A3C] flex items-center justify-center font-bold mb-3">
+              ⚡
+            </div>
+            <h4 className="font-bold text-xs text-[#3C4A3C] mb-1">Toma Eléctrica 110V</h4>
+            <p className="text-xs text-[#6A7869] leading-relaxed">
+              1 toma corriente estándar a menos de 10 metros del área de montaje. Consumo eficiente menor a 15A.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-[#FAF8F4] border border-[#E6DFD4]">
+            <div className="w-9 h-9 rounded-xl bg-[#7A8E77]/15 text-[#3C4A3C] flex items-center justify-center font-bold mb-3">
+              📐
+            </div>
+            <h4 className="font-bold text-xs text-[#3C4A3C] mb-1">Dimensiones</h4>
+            <p className="text-xs text-[#6A7869] leading-relaxed">
+              Superficie plana mínima de 2.00m de ancho × 1.50m de fondo. Apto para salones, quintas y jardines.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-[#FAF8F4] border border-[#E6DFD4]">
+            <div className="w-9 h-9 rounded-xl bg-[#7A8E77]/15 text-[#3C4A3C] flex items-center justify-center font-bold mb-3">
+              ⏱️
+            </div>
+            <h4 className="font-bold text-xs text-[#3C4A3C] mb-1">Puntualidad de Montaje</h4>
+            <p className="text-xs text-[#6A7869] leading-relaxed">
+              Llegada del equipo 60 a 90 minutos antes del inicio. Desmontaje en 45 minutos al terminar el servicio.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-[#FAF8F4] border border-[#E6DFD4]">
+            <div className="w-9 h-9 rounded-xl bg-[#7A8E77]/15 text-[#3C4A3C] flex items-center justify-center font-bold mb-3">
+              ✨
+            </div>
+            <h4 className="font-bold text-xs text-[#3C4A3C] mb-1">Charms & Toldos Riviera</h4>
+            <p className="text-xs text-[#6A7869] leading-relaxed">
+              Montaje integrado de sombrillas Riviera, mesas altas, taburetes y estación interactiva de dijs ($1/pz).
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* SECTION: PREGUNTAS FRECUENTES (FAQ) */}
+      <div className="mt-8 bg-white rounded-3xl p-6 sm:p-10 border border-[#E6DFD4] shadow-sm">
+        <div className="text-center max-w-2xl mx-auto mb-8">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#B69C76]">
+            Respuestas Claras para Anfitriones
+          </span>
+          <h3 className="text-2xl sm:text-3xl font-bold text-[#3C4A3C] font-editorial mt-1">
+            Preguntas Frecuentes
+          </h3>
+          <p className="text-xs text-[#6A7869] mt-2">
+            Todo lo que necesitas saber para coordinar la experiencia sensorial de ICHIN en tu evento.
+          </p>
+        </div>
+
+        <div className="space-y-3 max-w-3xl mx-auto">
+          {[
+            {
+              q: '¿Qué requerimientos técnicos necesita el carrito en la locación?',
+              a: 'Solo requerimos una toma de corriente estándar de 110V y un espacio plano de al menos 2.0 x 1.5 metros. Si tu evento es al aire libre, nuestro equipo cuenta con sombrillas Riviera y extensiones para exteriores para proteger la estación del sol.',
+            },
+            {
+              q: '¿Cómo funciona la personalización de bebidas con Charms y Gemas a $1 por pieza?',
+              a: 'Es una experiencia interactiva viral: cada invitado se acerca a la barra y recibe su bebida decorada con un dije coleccionable (ositos kawaii, fantasmitas spooky, motivos navideños, mini foodie, animalitos glow) o gemas 3D brillantes en su vaso. El dije se convierte en un recuerdo físico inolvidable de tu evento y solo cuesta $1 adicional por pieza.',
+            },
+            {
+              q: '¿Cómo se coordina el servicio de toldos sombrilla Riviera y mesas altas?',
+              a: 'Puedes agregarlo directamente en el cotizador en el Paso 3. Nuestro equipo logístico transporta, arma y desmonta las sombrillas de lona blanca con flecos chic, las mesas altas de cóctel y los taburetes blancos en tu terraza o jardín junto con la barra.',
+            },
+            {
+              q: '¿Tienen opciones para invitados veganos o con intolerancia a la lactosa?',
+              a: '¡Por supuesto! Todos nuestros paquetes incluyen leches vegetales prémium (avena barista, almendra y leche de coco) y leche deslactosada sin ningún recargo adicional. También disponemos de endulzantes naturales como miel pura y agave.',
+            },
+            {
+              q: '¿Con cuánta anticipación debo reservar la fecha de mi evento en Caracas?',
+              a: 'Recomendamos congelar la fecha con al menos 2 a 3 semanas de anticipación, especialmente para eventos en viernes, sábados o domingos, ya que mantenemos un límite de reservas por día para garantizar excelencia absoluta.',
+            },
+            {
+              q: '¿Cuáles son los métodos de pago aceptados para confirmar la reserva?',
+              a: 'Solicitamos un 50% de anticipo para apartar la fecha en nuestra agenda oficial, y el 50% restante el día del evento previo a la apertura de la barra. Aceptamos Zelle, Pago Móvil / Transferencia nacional en bolívares a tasa oficial del BCV, y efectivo en divisa.',
+            },
+          ].map((faq, idx) => {
+            const isOpen = openFaqIndex === idx;
+            return (
+              <div 
+                key={idx}
+                className="rounded-2xl border border-[#E6DFD4] overflow-hidden transition-all bg-[#FAF8F4]"
+              >
+                <button
+                  type="button"
+                  onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
+                  className="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-3 hover:bg-[#F3EFE7] transition-colors"
+                >
+                  <span className="text-xs sm:text-sm font-bold text-[#3C4A3C]">
+                    {faq.q}
+                  </span>
+                  <ChevronDown className={`w-4 h-4 text-[#7A8E77] shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {isOpen && (
+                  <div className="px-4 sm:px-5 pb-5 text-xs text-[#525B4F] leading-relaxed border-t border-[#E6DFD4]/60 pt-3 animate-in fade-in duration-200">
+                    {faq.a}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
     </div>
   );

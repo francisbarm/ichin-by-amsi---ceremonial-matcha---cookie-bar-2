@@ -54,6 +54,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
       if (item.customization?.coldFoam) {
         itemsList += `\n   • Cold Foam Botánica`;
       }
+      if (item.customization?.charmPiece) {
+        itemsList += `\n   • Dije / Charm Personalizado: ${item.customization.charmPiece} (+$1.00)`;
+      }
       if (item.customization?.notes) {
         itemsList += `\n   • Nota: ${item.customization.notes}`;
       }
@@ -202,6 +205,11 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                         {cartItem.customization.coldFoam && (
                           <span className="bg-[#B69C76]/15 text-[#3C4A3C] font-bold px-1.5 py-0.5 rounded">
                             +Foam
+                          </span>
+                        )}
+                        {cartItem.customization.charmPiece && (
+                          <span className="bg-[#B69C76]/20 text-[#3C4A3C] font-bold px-1.5 py-0.5 rounded border border-[#B69C76]/30">
+                            ✨ {cartItem.customization.charmPiece} (+$1.00)
                           </span>
                         )}
                       </div>
