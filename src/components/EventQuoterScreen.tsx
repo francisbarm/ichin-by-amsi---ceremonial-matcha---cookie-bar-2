@@ -31,7 +31,14 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
   onQuoteSubmitted,
   initialQuoteParams 
 }) => {
-  const [currentStep, setCurrentStep] = useState<number>(1);
+  const [currentStep, setCurrentStep] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const stepVal = parseInt(params.get('step') || '1', 10);
+      if (stepVal >= 1 && stepVal <= 4) return stepVal;
+    }
+    return 1;
+  });
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
   const [quoteState, setQuoteState] = useState<EventQuoteState>(() => ({
     eventType: (initialQuoteParams?.eventType as any) || 'Boda',

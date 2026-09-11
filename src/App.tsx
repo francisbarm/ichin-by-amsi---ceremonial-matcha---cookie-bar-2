@@ -16,7 +16,17 @@ import { MobileQrModal } from './components/MobileQrModal';
 import { Footer } from './components/Footer';
 
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState<ScreenType>('menu');
+  const [currentScreen, setCurrentScreen] = useState<ScreenType>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      let s = params.get('screen') || window.location.hash.replace('#', '');
+      if (s === 'cart') s = 'cart-showcase';
+      if (['menu', 'quoter', 'cart-showcase', 'orders'].includes(s)) {
+        return s as ScreenType;
+      }
+    }
+    return 'menu';
+  });
   const [cartItems, setCartItems] = useState<CartOrderItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
   const [isQrModalOpen, setIsQrModalOpen] = useState<boolean>(false);
