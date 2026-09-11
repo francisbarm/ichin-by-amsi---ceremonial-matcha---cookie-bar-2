@@ -10,6 +10,13 @@ import {
 import { guardarCotizacionSupabase } from '../lib/supabase';
 import { enviarCorreoCotizacionResend } from '../services/resendService';
 import { enviarCotizacionWhatsApp } from '../services/whatsappService';
+import { 
+  MOTIVATIONAL_PHRASES, 
+  PHRASE_CATEGORIES, 
+  getPhrasesByCategory, 
+  getRandomPhrase,
+  MotivationalPhrase 
+} from '../data/motivationalPhrases';
 
 interface EventQuoterScreenProps {
   onQuoteSubmitted: (newBooking: BookingRecord) => void;
@@ -66,6 +73,25 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
 
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
   const [submittedBooking, setSubmittedBooking] = useState<BookingRecord | null>(null);
+
+  // Motivational phrases state for chalkboard personalization
+  const [phraseCategoryFilter, setPhraseCategoryFilter] = useState<'all' | 'bodas' | 'corporativo' | 'cumpleanos' | 'wellness' | 'social' | 'graduacion'>('all');
+  const [phraseLangFilter, setPhraseLangFilter] = useState<'all' | 'es' | 'en'>('all');
+  const [phraseSearchTerm, setPhraseSearchTerm] = useState<string>('');
+  const [justAppliedPhrase, setJustAppliedPhrase] = useState<string | null>(null);
+
+  // Auto-suggest phrase category based on event type
+  React.useEffect(() => {
+    if (quoteState.eventType === 'Boda') {
+      setPhraseCategoryFilter('bodas');
+    } else if (quoteState.eventType === 'Corporativo / Brand Activation') {
+      setPhraseCategoryFilter('corporativo');
+    } else if (quoteState.eventType === 'Cumpleaños VIP') {
+      setPhraseCategoryFilter('cumpleanos');
+    } else if (quoteState.eventType === 'Brunch & Social') {
+      setPhraseCategoryFilter('social');
+    }
+  }, [quoteState.eventType]);
 
   // Selected package
   const selectedPkg =
@@ -639,43 +665,185 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
 
                   {/* Add-ons Toggles */}
                   <div className="space-y-4">
-                    {/* Custom Chalkboard Phrase */}
-                    <div className="p-4 rounded-2xl border border-[#E6DFD4] bg-white">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="font-bold text-xs text-[#3C4A3C] flex items-center gap-1.5">
-                          <span>🪧</span>
-                          <span>Frase Personalizada para la Pizarra del Carrito (Incluida)</span>
+                    {/* Custom Chalkboard Phrase with Extensive Categorized Bilingual Presets */}
+                    <div className="p-4 sm:p-5 rounded-2xl border border-[#E6DFD4] bg-white shadow-sm space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="font-bold text-xs sm:text-sm text-[#3C4A3C] flex items-center gap-1.5">
+                          <span className="text-base">🪧</span>
+                          <span>Frase Motivacional para la Pizarra del Carrito</span>
                         </div>
-                        <span className="text-[10px] font-bold text-[#7A8E77] bg-[#FAF8F4] px-2 py-0.5 rounded-full">
-                          Sin costo extra
+                        <span className="text-[10px] font-bold text-[#455546] bg-[#FAF8F4] border border-[#D4C4AA] px-2.5 py-0.5 rounded-full">
+                          ✦ Incluida sin costo
                         </span>
                       </div>
-                      <p className="text-[11px] text-[#525B4F] mb-2.5">
-                        Personaliza la pizarra caballete A-frame con tu frase preferida, monograma de boda o bienvenida a tus invitados:
+                      <p className="text-[11px] text-[#525B4F] leading-relaxed">
+                        Personaliza la pizarra caballete A-frame que colocamos en la entrada del carrito. Selecciona entre nuestras frases motivacionales por evento en <strong>Español e Inglés</strong>, o escribe tu propio monograma o dedicatoria:
                       </p>
-                      <input
-                        type="text"
-                        value={quoteState.customSignagePhrase || ''}
-                        onChange={(e) => setQuoteState({ ...quoteState, customSignagePhrase: e.target.value })}
-                        placeholder="Ej. GOOD HABITS, BETTER DAYS ♡ / Boda Sofía & Mateo"
-                        className="w-full py-2.5 px-3.5 rounded-xl bg-[#FAF8F4] border border-[#E6DFD4] text-xs font-semibold text-[#3C4A3C] focus:outline-none focus:ring-2 focus:ring-[#7A8E77]"
-                      />
-                      <div className="flex flex-wrap gap-1.5 mt-2">
-                        {[
-                          'GOOD HABITS, BETTER DAYS ♡',
-                          'GOOD DRINKS, BRIGHTER DAYS ♡',
-                          'BEBIDAS NATURALES PARA GRANDES IDEAS',
-                          'BODA INOLVIDABLE 2026',
-                        ].map((phrase) => (
+
+                      {/* Main input */}
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={quoteState.customSignagePhrase || ''}
+                          onChange={(e) => {
+                            setQuoteState({ ...quoteState, customSignagePhrase: e.target.value });
+                            setJustAppliedPhrase(null);
+                          }}
+                          placeholder="Ej. GOOD HABITS, BETTER DAYS ♡ / Boda Sofía & Mateo"
+                          className="w-full py-2.5 px-3.5 pr-10 rounded-xl bg-[#FAF8F4] border border-[#E6DFD4] text-xs font-semibold text-[#3C4A3C] focus:outline-none focus:ring-2 focus:ring-[#7A8E77]"
+                        />
+                        {quoteState.customSignagePhrase && (
                           <button
-                            key={phrase}
                             type="button"
-                            onClick={() => setQuoteState({ ...quoteState, customSignagePhrase: phrase })}
-                            className="text-[10px] px-2.5 py-1 rounded-full bg-[#FAF8F4] hover:bg-[#F3EFE7] text-[#3C4A3C] border border-[#E6DFD4] transition-all"
+                            onClick={() => setQuoteState({ ...quoteState, customSignagePhrase: '' })}
+                            className="absolute right-3 top-2.5 text-xs text-[#9BB098] hover:text-[#455546]"
+                            title="Borrar frase"
                           >
-                            {phrase}
+                            ✕
                           </button>
-                        ))}
+                        )}
+                      </div>
+
+                      {/* Filter Controls: Category + Language + Randomizer */}
+                      <div className="pt-1 space-y-2">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          {/* Language selector */}
+                          <div className="flex items-center gap-1 bg-[#FAF8F4] p-1 rounded-xl border border-[#E6DFD4]">
+                            <button
+                              type="button"
+                              onClick={() => setPhraseLangFilter('all')}
+                              className={`text-[10px] px-2.5 py-0.5 rounded-lg font-bold transition-all ${
+                                phraseLangFilter === 'all'
+                                  ? 'bg-[#455546] text-white shadow-xs'
+                                  : 'text-[#525B4F] hover:text-[#3C4A3C]'
+                              }`}
+                            >
+                              🌐 Ambos
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setPhraseLangFilter('es')}
+                              className={`text-[10px] px-2.5 py-0.5 rounded-lg font-bold transition-all ${
+                                phraseLangFilter === 'es'
+                                  ? 'bg-[#455546] text-white shadow-xs'
+                                  : 'text-[#525B4F] hover:text-[#3C4A3C]'
+                              }`}
+                            >
+                              🇪🇸 Español
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setPhraseLangFilter('en')}
+                              className={`text-[10px] px-2.5 py-0.5 rounded-lg font-bold transition-all ${
+                                phraseLangFilter === 'en'
+                                  ? 'bg-[#455546] text-white shadow-xs'
+                                  : 'text-[#525B4F] hover:text-[#3C4A3C]'
+                              }`}
+                            >
+                              🇺🇸 English
+                            </button>
+                          </div>
+
+                          {/* Quick Randomizer */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const rnd = getRandomPhrase(phraseCategoryFilter, phraseLangFilter);
+                              setQuoteState({ ...quoteState, customSignagePhrase: rnd.phrase });
+                              setJustAppliedPhrase(rnd.id);
+                              setTimeout(() => setJustAppliedPhrase(null), 2500);
+                            }}
+                            className="text-[10px] font-bold px-2.5 py-1 rounded-xl bg-[#EDE7DC] hover:bg-[#D4C4AA]/70 text-[#3C4A3C] border border-[#D4C4AA] transition-all flex items-center gap-1 cursor-pointer"
+                          >
+                            <span>🎲</span>
+                            <span>Frase Aleatoria</span>
+                          </button>
+                        </div>
+
+                        {/* Category Pills */}
+                        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+                          {PHRASE_CATEGORIES.map((cat) => (
+                            <button
+                              key={cat.id}
+                              type="button"
+                              onClick={() => setPhraseCategoryFilter(cat.id as any)}
+                              className={`text-[10px] px-2.5 py-1 rounded-xl whitespace-nowrap font-medium transition-all flex items-center gap-1 ${
+                                phraseCategoryFilter === cat.id
+                                  ? 'bg-[#7A8E77] text-white shadow-xs font-bold'
+                                  : 'bg-[#FAF8F4] text-[#525B4F] border border-[#E6DFD4] hover:bg-[#F3EFE7]'
+                              }`}
+                            >
+                              <span>{cat.icon}</span>
+                              <span>{phraseLangFilter === 'en' ? cat.labelEn : cat.labelEs}</span>
+                            </button>
+                          ))}
+                        </div>
+
+                        {/* Keyword search filter */}
+                        <input
+                          type="text"
+                          value={phraseSearchTerm}
+                          onChange={(e) => setPhraseSearchTerm(e.target.value)}
+                          placeholder="🔍 Filtrar frases por palabra clave (ej. amor, matcha, focus, risas)..."
+                          className="w-full py-1.5 px-3 rounded-lg bg-[#FAF8F4] border border-[#E6DFD4] text-[10px] text-[#3C4A3C] placeholder-[#9BB098] focus:outline-none focus:ring-1 focus:ring-[#7A8E77]"
+                        />
+                      </div>
+
+                      {/* Filtered Motivational Phrases Grid */}
+                      <div className="max-h-44 overflow-y-auto pr-1 space-y-1.5 rounded-xl border border-[#E6DFD4] p-2 bg-[#FAF8F4]/60">
+                        {getPhrasesByCategory(phraseCategoryFilter, phraseLangFilter)
+                          .filter((p) => 
+                            !phraseSearchTerm.trim() || 
+                            p.phrase.toLowerCase().includes(phraseSearchTerm.toLowerCase()) ||
+                            p.categoryLabel.toLowerCase().includes(phraseSearchTerm.toLowerCase())
+                          )
+                          .map((item) => {
+                            const isSelected = quoteState.customSignagePhrase === item.phrase;
+                            return (
+                              <button
+                                key={item.id}
+                                type="button"
+                                onClick={() => {
+                                  setQuoteState({ ...quoteState, customSignagePhrase: item.phrase });
+                                  setJustAppliedPhrase(item.id);
+                                  setTimeout(() => setJustAppliedPhrase(null), 2500);
+                                }}
+                                className={`w-full text-left p-2 rounded-lg text-[11px] transition-all flex items-center justify-between gap-2 border ${
+                                  isSelected
+                                    ? 'bg-[#455546] text-white border-[#455546] font-semibold shadow-xs'
+                                    : 'bg-white hover:bg-[#F3EFE7] text-[#3C4A3C] border-[#E6DFD4]'
+                                }`}
+                              >
+                                <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                                  <span className="text-xs shrink-0">{item.icon}</span>
+                                  <span className="truncate italic">"{item.phrase}"</span>
+                                </div>
+                                <div className="flex items-center gap-1 shrink-0">
+                                  <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase ${
+                                    isSelected ? 'bg-white/20 text-white' : 'bg-[#FAF8F4] text-[#6A7869] border border-[#E6DFD4]'
+                                  }`}>
+                                    {item.lang === 'es' ? 'ES' : 'EN'}
+                                  </span>
+                                  {isSelected && (
+                                    <span className="text-[10px] text-[#A3E635]">✓</span>
+                                  )}
+                                </div>
+                              </button>
+                            );
+                          })}
+                      </div>
+
+                      {/* Live Mini-Chalkboard Preview */}
+                      <div className="mt-2 p-3 rounded-xl bg-[#2B342B] border-2 border-[#525B4F] text-center shadow-inner">
+                        <div className="text-[9px] font-bold text-[#D4BE9B] uppercase tracking-widest mb-1">
+                          Pizarra de Bienvenida • Vista Previa
+                        </div>
+                        <p className="text-[#FAF8F4] font-serif text-xs sm:text-sm font-bold tracking-wide italic">
+                          "{quoteState.customSignagePhrase || 'GOOD HABITS, BETTER DAYS ♡'}"
+                        </p>
+                        <div className="text-[9px] text-[#9BB098] mt-1 tracking-widest uppercase">
+                          ICHIN BY AMSI • CEREMONIAL MATCHA
+                        </div>
                       </div>
                     </div>
 

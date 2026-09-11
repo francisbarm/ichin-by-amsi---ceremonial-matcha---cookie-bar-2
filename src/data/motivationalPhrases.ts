@@ -1,0 +1,972 @@
+export interface MotivationalPhrase {
+  id: string;
+  phrase: string;
+  category: 'bodas' | 'corporativo' | 'cumpleanos' | 'wellness' | 'social' | 'graduacion';
+  lang: 'es' | 'en';
+  categoryLabel: string;
+  icon: string;
+}
+
+export interface PhraseCategoryMeta {
+  id: 'all' | 'bodas' | 'corporativo' | 'cumpleanos' | 'wellness' | 'social' | 'graduacion';
+  labelEs: string;
+  labelEn: string;
+  icon: string;
+  description: string;
+}
+
+export const PHRASE_CATEGORIES: PhraseCategoryMeta[] = [
+  { id: 'all', labelEs: 'Todas las Frases', labelEn: 'All Phrases', icon: '✨', description: 'Explora toda la colección de frases' },
+  { id: 'bodas', labelEs: 'Bodas & Amor', labelEn: 'Weddings & Love', icon: '💍', description: 'Monogramas, votos y amor infinito' },
+  { id: 'corporativo', labelEs: 'Corporativo & Innovación', labelEn: 'Corporate & Focus', icon: '💡', description: 'Enfoque, liderazgo y energía limpia' },
+  { id: 'cumpleanos', labelEs: 'Cumpleaños & Fiestas', labelEn: 'Birthdays & Parties', icon: '🎂', description: 'Alegría, brindis y nuevas vueltas al sol' },
+  { id: 'wellness', labelEs: 'Bienestar & Zen', labelEn: 'Wellness & Mindfulness', icon: '🧘', description: 'Pausa consciente, serenidad y balance' },
+  { id: 'social', labelEs: 'Brunch & Social', labelEn: 'Brunch & Friends', icon: '🌸', description: 'Tardes de té, baby & bridal showers' },
+  { id: 'graduacion', labelEs: 'Graduación & Éxito', labelEn: 'Milestones & Success', icon: '🎓', description: 'Metas cumplidas y grandes comienzos' },
+];
+
+export const MOTIVATIONAL_PHRASES: MotivationalPhrase[] = [
+  // =========================================================================
+  // 💍 BODAS & COMPROMISOS / WEDDINGS & ROMANCE
+  // =========================================================================
+  // Español (ES)
+  {
+    id: 'boda-es-1',
+    phrase: 'El amor es la mejor pausa del día ♡',
+    category: 'bodas',
+    lang: 'es',
+    categoryLabel: 'Bodas & Amor',
+    icon: '💍',
+  },
+  {
+    id: 'boda-es-2',
+    phrase: 'Brindemos por un amor que nunca termina ✨',
+    category: 'bodas',
+    lang: 'es',
+    categoryLabel: 'Bodas & Amor',
+    icon: '🥂',
+  },
+  {
+    id: 'boda-es-3',
+    phrase: 'Juntos es nuestro lugar favorito ♡',
+    category: 'bodas',
+    lang: 'es',
+    categoryLabel: 'Bodas & Amor',
+    icon: '💒',
+  },
+  {
+    id: 'boda-es-4',
+    phrase: 'Un café, un matcha y toda una vida juntos',
+    category: 'bodas',
+    lang: 'es',
+    categoryLabel: 'Bodas & Amor',
+    icon: '🍵',
+  },
+  {
+    id: 'boda-es-5',
+    phrase: 'Celebrando el amor hoy, mañana y siempre ♡',
+    category: 'bodas',
+    lang: 'es',
+    categoryLabel: 'Bodas & Amor',
+    icon: '❤️',
+  },
+  {
+    id: 'boda-es-6',
+    phrase: 'La dulzura de compartir la vida contigo ✨',
+    category: 'bodas',
+    lang: 'es',
+    categoryLabel: 'Bodas & Amor',
+    icon: '✨',
+  },
+  {
+    id: 'boda-es-7',
+    phrase: 'Dos almas, un destino, un brindis eterno 🥂',
+    category: 'bodas',
+    lang: 'es',
+    categoryLabel: 'Bodas & Amor',
+    icon: '🥂',
+  },
+  {
+    id: 'boda-es-8',
+    phrase: 'Donde hay amor, hay magia y buen matcha ♡',
+    category: 'bodas',
+    lang: 'es',
+    categoryLabel: 'Bodas & Amor',
+    icon: '🌿',
+  },
+  {
+    id: 'boda-es-9',
+    phrase: 'Nuestro para siempre comienza hoy ✨',
+    category: 'bodas',
+    lang: 'es',
+    categoryLabel: 'Bodas & Amor',
+    icon: '💍',
+  },
+  {
+    id: 'boda-es-10',
+    phrase: 'Amor en cada detalle, felicidad en cada sorbo ♡',
+    category: 'bodas',
+    lang: 'es',
+    categoryLabel: 'Bodas & Amor',
+    icon: '🌸',
+  },
+
+  // English (EN)
+  {
+    id: 'boda-en-1',
+    phrase: 'All you need is love & ceremonial matcha ♡',
+    category: 'bodas',
+    lang: 'en',
+    categoryLabel: 'Weddings & Love',
+    icon: '💍',
+  },
+  {
+    id: 'boda-en-2',
+    phrase: 'Together is a beautiful place to be ✨',
+    category: 'bodas',
+    lang: 'en',
+    categoryLabel: 'Weddings & Love',
+    icon: '🥂',
+  },
+  {
+    id: 'boda-en-3',
+    phrase: 'To love, laughter and happily ever after ♡',
+    category: 'bodas',
+    lang: 'en',
+    categoryLabel: 'Weddings & Love',
+    icon: '💒',
+  },
+  {
+    id: 'boda-en-4',
+    phrase: 'Better together, brighter forever ✨',
+    category: 'bodas',
+    lang: 'en',
+    categoryLabel: 'Weddings & Love',
+    icon: '❤️',
+  },
+  {
+    id: 'boda-en-5',
+    phrase: 'Brewed with pure love for this special day ♡',
+    category: 'bodas',
+    lang: 'en',
+    categoryLabel: 'Weddings & Love',
+    icon: '🍵',
+  },
+  {
+    id: 'boda-en-6',
+    phrase: 'Forever starts with a mindful toast 🥂',
+    category: 'bodas',
+    lang: 'en',
+    categoryLabel: 'Weddings & Love',
+    icon: '🥂',
+  },
+  {
+    id: 'boda-en-7',
+    phrase: 'Love, sweet treats & gentle green vibes ♡',
+    category: 'bodas',
+    lang: 'en',
+    categoryLabel: 'Weddings & Love',
+    icon: '🌿',
+  },
+  {
+    id: 'boda-en-8',
+    phrase: 'A toast to two hearts beating as one 💍',
+    category: 'bodas',
+    lang: 'en',
+    categoryLabel: 'Weddings & Love',
+    icon: '💍',
+  },
+  {
+    id: 'boda-en-9',
+    phrase: 'The sweetest love story in every sip ✨',
+    category: 'bodas',
+    lang: 'en',
+    categoryLabel: 'Weddings & Love',
+    icon: '✨',
+  },
+  {
+    id: 'boda-en-10',
+    phrase: 'Cheers to endless love & shared dreams ♡',
+    category: 'bodas',
+    lang: 'en',
+    categoryLabel: 'Weddings & Love',
+    icon: '🌸',
+  },
+
+  // =========================================================================
+  // 💡 CORPORATIVO, INNOVACIÓN & LIDERAZGO / CORPORATE & FOCUS
+  // =========================================================================
+  // Español (ES)
+  {
+    id: 'corp-es-1',
+    phrase: 'BEBIDAS NATURALES PARA GRANDES IDEAS 💡',
+    category: 'corporativo',
+    lang: 'es',
+    categoryLabel: 'Corporativo & Innovación',
+    icon: '💡',
+  },
+  {
+    id: 'corp-es-2',
+    phrase: 'Mentes despiertas creando el futuro ✨',
+    category: 'corporativo',
+    lang: 'es',
+    categoryLabel: 'Corporativo & Innovación',
+    icon: '🚀',
+  },
+  {
+    id: 'corp-es-3',
+    phrase: 'La energía limpia detrás de los grandes proyectos 🍵',
+    category: 'corporativo',
+    lang: 'es',
+    categoryLabel: 'Corporativo & Innovación',
+    icon: '🌿',
+  },
+  {
+    id: 'corp-es-4',
+    phrase: 'Inspiración, enfoque y bienestar en cada taza ⚡',
+    category: 'corporativo',
+    lang: 'es',
+    categoryLabel: 'Corporativo & Innovación',
+    icon: '⚡',
+  },
+  {
+    id: 'corp-es-5',
+    phrase: 'Grandes momentos nacen de una pausa verde ♡',
+    category: 'corporativo',
+    lang: 'es',
+    categoryLabel: 'Corporativo & Innovación',
+    icon: '🍵',
+  },
+  {
+    id: 'corp-es-6',
+    phrase: 'Creatividad en alta frecuencia ✨',
+    category: 'corporativo',
+    lang: 'es',
+    categoryLabel: 'Corporativo & Innovación',
+    icon: '💡',
+  },
+  {
+    id: 'corp-es-7',
+    phrase: 'Innovar con propósito, serenidad y claridad 🌿',
+    category: 'corporativo',
+    lang: 'es',
+    categoryLabel: 'Corporativo & Innovación',
+    icon: '🚀',
+  },
+  {
+    id: 'corp-es-8',
+    phrase: 'Energía sostenida sin caídas, enfoque total ⚡',
+    category: 'corporativo',
+    lang: 'es',
+    categoryLabel: 'Corporativo & Innovación',
+    icon: '⚡',
+  },
+  {
+    id: 'corp-es-9',
+    phrase: 'Ideas brillantes merecen pausas conscientes 💡',
+    category: 'corporativo',
+    lang: 'es',
+    categoryLabel: 'Corporativo & Innovación',
+    icon: '💡',
+  },
+  {
+    id: 'corp-es-10',
+    phrase: 'Transformando desafíos en logros colectivos 🏆',
+    category: 'corporativo',
+    lang: 'es',
+    categoryLabel: 'Corporativo & Innovación',
+    icon: '🏆',
+  },
+
+  // English (EN)
+  {
+    id: 'corp-en-1',
+    phrase: 'NATURAL DRINKS FOR BRIGHT MINDS 💡',
+    category: 'corporativo',
+    lang: 'en',
+    categoryLabel: 'Corporate & Focus',
+    icon: '💡',
+  },
+  {
+    id: 'corp-en-2',
+    phrase: 'GOOD HABITS, BETTER DAYS ♡',
+    category: 'corporativo',
+    lang: 'en',
+    categoryLabel: 'Corporate & Focus',
+    icon: '🚀',
+  },
+  {
+    id: 'corp-en-3',
+    phrase: 'Clear mind, powerful impact ✨',
+    category: 'corporativo',
+    lang: 'en',
+    categoryLabel: 'Corporate & Focus',
+    icon: '⚡',
+  },
+  {
+    id: 'corp-en-4',
+    phrase: 'Fuel your focus, ignite your vision 🍵',
+    category: 'corporativo',
+    lang: 'en',
+    categoryLabel: 'Corporate & Focus',
+    icon: '🌿',
+  },
+  {
+    id: 'corp-en-5',
+    phrase: 'GOOD DRINKS, BRIGHTER MINDS ♡',
+    category: 'corporativo',
+    lang: 'en',
+    categoryLabel: 'Corporate & Focus',
+    icon: '💡',
+  },
+  {
+    id: 'corp-en-6',
+    phrase: 'Mindful momentum for big achievements 🚀',
+    category: 'corporativo',
+    lang: 'en',
+    categoryLabel: 'Corporate & Focus',
+    icon: '✨',
+  },
+  {
+    id: 'corp-en-7',
+    phrase: 'Clean green energy for breakthrough ideas ⚡',
+    category: 'corporativo',
+    lang: 'en',
+    categoryLabel: 'Corporate & Focus',
+    icon: '⚡',
+  },
+  {
+    id: 'corp-en-8',
+    phrase: 'Quiet the noise, lead with clarity & vision 🌿',
+    category: 'corporativo',
+    lang: 'en',
+    categoryLabel: 'Corporate & Focus',
+    icon: '🌿',
+  },
+  {
+    id: 'corp-en-9',
+    phrase: 'Focus sharp, dreams bold, ritual pure 💡',
+    category: 'corporativo',
+    lang: 'en',
+    categoryLabel: 'Corporate & Focus',
+    icon: '💡',
+  },
+  {
+    id: 'corp-en-10',
+    phrase: 'Elevating teams through wellness & taste 🍵',
+    category: 'corporativo',
+    lang: 'en',
+    categoryLabel: 'Corporate & Focus',
+    icon: '🏆',
+  },
+
+  // =========================================================================
+  // 🎂 CUMPLEAÑOS & FIESTAS VIP / BIRTHDAYS & PARTIES
+  // =========================================================================
+  // Español (ES)
+  {
+    id: 'bday-es-1',
+    phrase: 'Celebrar la vida es el mejor hábito 🥂',
+    category: 'cumpleanos',
+    lang: 'es',
+    categoryLabel: 'Cumpleaños & Fiestas',
+    icon: '🎂',
+  },
+  {
+    id: 'bday-es-2',
+    phrase: 'Un año más para brillar, sonreír y gozar ✨',
+    category: 'cumpleanos',
+    lang: 'es',
+    categoryLabel: 'Cumpleaños & Fiestas',
+    icon: '🎉',
+  },
+  {
+    id: 'bday-es-3',
+    phrase: 'La vida es corta, tómate un buen matcha ♡',
+    category: 'cumpleanos',
+    lang: 'es',
+    categoryLabel: 'Cumpleaños & Fiestas',
+    icon: '🍵',
+  },
+  {
+    id: 'bday-es-4',
+    phrase: 'Risas, amigos y momentos inolvidables 🥂',
+    category: 'cumpleanos',
+    lang: 'es',
+    categoryLabel: 'Cumpleaños & Fiestas',
+    icon: '🎈',
+  },
+  {
+    id: 'bday-es-5',
+    phrase: 'Deseos dulces, energía bonita y buena vibra ✨',
+    category: 'cumpleanos',
+    lang: 'es',
+    categoryLabel: 'Cumpleaños & Fiestas',
+    icon: '🎂',
+  },
+  {
+    id: 'bday-es-6',
+    phrase: 'Brindis verde por más vueltas al sol ☀️',
+    category: 'cumpleanos',
+    lang: 'es',
+    categoryLabel: 'Cumpleaños & Fiestas',
+    icon: '🥂',
+  },
+  {
+    id: 'bday-es-7',
+    phrase: 'La edad es un número, la dulzura es eterna ✨',
+    category: 'cumpleanos',
+    lang: 'es',
+    categoryLabel: 'Cumpleaños & Fiestas',
+    icon: '✨',
+  },
+  {
+    id: 'bday-es-8',
+    phrase: 'Hoy celebramos lo extraordinario de ti ♡',
+    category: 'cumpleanos',
+    lang: 'es',
+    categoryLabel: 'Cumpleaños & Fiestas',
+    icon: '🎉',
+  },
+  {
+    id: 'bday-es-9',
+    phrase: 'Nuevo año, nuevas metas, misma energía radiante 🌟',
+    category: 'cumpleanos',
+    lang: 'es',
+    categoryLabel: 'Cumpleaños & Fiestas',
+    icon: '🌟',
+  },
+  {
+    id: 'bday-es-10',
+    phrase: 'Que sobren risas, amigos y matcha latte 🎈',
+    category: 'cumpleanos',
+    lang: 'es',
+    categoryLabel: 'Cumpleaños & Fiestas',
+    icon: '🎈',
+  },
+
+  // English (EN)
+  {
+    id: 'bday-en-1',
+    phrase: 'Cheers to another year of glowing brighter ✨',
+    category: 'cumpleanos',
+    lang: 'en',
+    categoryLabel: 'Birthdays & Parties',
+    icon: '🎂',
+  },
+  {
+    id: 'bday-en-2',
+    phrase: 'Good vibes, sweet bites & matcha drinks ♡',
+    category: 'cumpleanos',
+    lang: 'en',
+    categoryLabel: 'Birthdays & Parties',
+    icon: '🎉',
+  },
+  {
+    id: 'bday-en-3',
+    phrase: 'Sip happy, live fully & celebrate today 🥂',
+    category: 'cumpleanos',
+    lang: 'en',
+    categoryLabel: 'Birthdays & Parties',
+    icon: '🎈',
+  },
+  {
+    id: 'bday-en-4',
+    phrase: 'Making sweet memories one sip at a time ♡',
+    category: 'cumpleanos',
+    lang: 'en',
+    categoryLabel: 'Birthdays & Parties',
+    icon: '🍵',
+  },
+  {
+    id: 'bday-en-5',
+    phrase: 'Another year bolder, brighter & sweeter 🎂',
+    category: 'cumpleanos',
+    lang: 'en',
+    categoryLabel: 'Birthdays & Parties',
+    icon: '✨',
+  },
+  {
+    id: 'bday-en-6',
+    phrase: 'Born to sparkle, brewed to inspire ✨',
+    category: 'cumpleanos',
+    lang: 'en',
+    categoryLabel: 'Birthdays & Parties',
+    icon: '🌟',
+  },
+  {
+    id: 'bday-en-7',
+    phrase: 'A toast to your brightest year yet 🥂',
+    category: 'cumpleanos',
+    lang: 'en',
+    categoryLabel: 'Birthdays & Parties',
+    icon: '🥂',
+  },
+  {
+    id: 'bday-en-8',
+    phrase: 'Sweet wishes & radiant green energy all year round ♡',
+    category: 'cumpleanos',
+    lang: 'en',
+    categoryLabel: 'Birthdays & Parties',
+    icon: '🎂',
+  },
+  {
+    id: 'bday-en-9',
+    phrase: 'Leveling up with grace, joy & ceremonial matcha 🎈',
+    category: 'cumpleanos',
+    lang: 'en',
+    categoryLabel: 'Birthdays & Parties',
+    icon: '🎈',
+  },
+  {
+    id: 'bday-en-10',
+    phrase: 'Here’s to golden hours, sweet treats & big laughs ✨',
+    category: 'cumpleanos',
+    lang: 'en',
+    categoryLabel: 'Birthdays & Parties',
+    icon: '🎉',
+  },
+
+  // =========================================================================
+  // 🧘 BIENESTAR, ZEN & MINDFULNESS / WELLNESS & MINDFULNESS
+  // =========================================================================
+  // Español (ES)
+  {
+    id: 'zen-es-1',
+    phrase: 'Pausa consciente, mente en calma 🌿',
+    category: 'wellness',
+    lang: 'es',
+    categoryLabel: 'Bienestar & Zen',
+    icon: '🧘',
+  },
+  {
+    id: 'zen-es-2',
+    phrase: 'El ritual de volver a ti en cada sorbo 🍵',
+    category: 'wellness',
+    lang: 'es',
+    categoryLabel: 'Bienestar & Zen',
+    icon: '✨',
+  },
+  {
+    id: 'zen-es-3',
+    phrase: 'Salud, serenidad y gratitud en el corazón ♡',
+    category: 'wellness',
+    lang: 'es',
+    categoryLabel: 'Bienestar & Zen',
+    icon: '🌿',
+  },
+  {
+    id: 'zen-es-4',
+    phrase: 'Cuidar tu energía es un acto de amor propio ✨',
+    category: 'wellness',
+    lang: 'es',
+    categoryLabel: 'Bienestar & Zen',
+    icon: '💚',
+  },
+  {
+    id: 'zen-es-5',
+    phrase: 'Respira profundo y disfruta el momento presente 🌿',
+    category: 'wellness',
+    lang: 'es',
+    categoryLabel: 'Bienestar & Zen',
+    icon: '🧘',
+  },
+  {
+    id: 'zen-es-6',
+    phrase: 'Equilibrio entre cuerpo, mente y alma 🍵',
+    category: 'wellness',
+    lang: 'es',
+    categoryLabel: 'Bienestar & Zen',
+    icon: '🌿',
+  },
+  {
+    id: 'zen-es-7',
+    phrase: 'Conexión interior, paz exterior ✨',
+    category: 'wellness',
+    lang: 'es',
+    categoryLabel: 'Bienestar & Zen',
+    icon: '💚',
+  },
+  {
+    id: 'zen-es-8',
+    phrase: 'Nutre tu templo con lo más puro de la naturaleza 🌱',
+    category: 'wellness',
+    lang: 'es',
+    categoryLabel: 'Bienestar & Zen',
+    icon: '🌱',
+  },
+  {
+    id: 'zen-es-9',
+    phrase: 'Armonía en cada respiración, calma en cada té 🧘',
+    category: 'wellness',
+    lang: 'es',
+    categoryLabel: 'Bienestar & Zen',
+    icon: '🧘',
+  },
+  {
+    id: 'zen-es-10',
+    phrase: 'Tu paz mental es tu mayor bendición ♡',
+    category: 'wellness',
+    lang: 'es',
+    categoryLabel: 'Bienestar & Zen',
+    icon: '✨',
+  },
+
+  // English (EN)
+  {
+    id: 'zen-en-1',
+    phrase: 'Peace of mind in every single sip 🌿',
+    category: 'wellness',
+    lang: 'en',
+    categoryLabel: 'Wellness & Mindfulness',
+    icon: '🧘',
+  },
+  {
+    id: 'zen-en-2',
+    phrase: 'Sip slowly, breathe deeply, live mindfully ♡',
+    category: 'wellness',
+    lang: 'en',
+    categoryLabel: 'Wellness & Mindfulness',
+    icon: '🍵',
+  },
+  {
+    id: 'zen-en-3',
+    phrase: 'Gentle green energy for your brightest days ✨',
+    category: 'wellness',
+    lang: 'en',
+    categoryLabel: 'Wellness & Mindfulness',
+    icon: '🌿',
+  },
+  {
+    id: 'zen-en-4',
+    phrase: 'Fuel your soul with mindful harmony 💚',
+    category: 'wellness',
+    lang: 'en',
+    categoryLabel: 'Wellness & Mindfulness',
+    icon: '✨',
+  },
+  {
+    id: 'zen-en-5',
+    phrase: 'Quiet the noise, savor the ritual 🍵',
+    category: 'wellness',
+    lang: 'en',
+    categoryLabel: 'Wellness & Mindfulness',
+    icon: '🧘',
+  },
+  {
+    id: 'zen-en-6',
+    phrase: 'Breathe in peace, exhale all doubt 🌿',
+    category: 'wellness',
+    lang: 'en',
+    categoryLabel: 'Wellness & Mindfulness',
+    icon: '🧘',
+  },
+  {
+    id: 'zen-en-7',
+    phrase: 'Nurture your temple with calm intention 💚',
+    category: 'wellness',
+    lang: 'en',
+    categoryLabel: 'Wellness & Mindfulness',
+    icon: '🌱',
+  },
+  {
+    id: 'zen-en-8',
+    phrase: 'Ground yourself in the serenity of now ✨',
+    category: 'wellness',
+    lang: 'en',
+    categoryLabel: 'Wellness & Mindfulness',
+    icon: '✨',
+  },
+  {
+    id: 'zen-en-9',
+    phrase: 'Slow down, honor the moment & drink tea 🍵',
+    category: 'wellness',
+    lang: 'en',
+    categoryLabel: 'Wellness & Mindfulness',
+    icon: '🍵',
+  },
+  {
+    id: 'zen-en-10',
+    phrase: 'Radiate tranquility and gentle strength ♡',
+    category: 'wellness',
+    lang: 'en',
+    categoryLabel: 'Wellness & Mindfulness',
+    icon: '🌿',
+  },
+
+  // =========================================================================
+  // 🌸 SOCIAL, BRUNCH & AMISTAD / SOCIAL & BRUNCH
+  // =========================================================================
+  // Español (ES)
+  {
+    id: 'soc-es-1',
+    phrase: 'El matcha nos une, la amistad nos llena ♡',
+    category: 'social',
+    lang: 'es',
+    categoryLabel: 'Brunch & Amistad',
+    icon: '🌸',
+  },
+  {
+    id: 'soc-es-2',
+    phrase: 'Tardes bonitas con personas increíbles ✨',
+    category: 'social',
+    lang: 'es',
+    categoryLabel: 'Brunch & Amistad',
+    icon: '🥂',
+  },
+  {
+    id: 'soc-es-3',
+    phrase: 'Menos prisas, más charlas y buen matcha 🍵',
+    category: 'social',
+    lang: 'es',
+    categoryLabel: 'Brunch & Amistad',
+    icon: '💬',
+  },
+  {
+    id: 'soc-es-4',
+    phrase: 'Dulces momentos que alegran el alma 🌸',
+    category: 'social',
+    lang: 'es',
+    categoryLabel: 'Brunch & Amistad',
+    icon: '🍰',
+  },
+  {
+    id: 'soc-es-5',
+    phrase: 'Celebrando la futura mamá con dulzura y amor 👶',
+    category: 'social',
+    lang: 'es',
+    categoryLabel: 'Baby & Bridal Shower',
+    icon: '👶',
+  },
+  {
+    id: 'soc-es-6',
+    phrase: 'Brunch con amigas: risas, chismes y matcha latte 🌸',
+    category: 'social',
+    lang: 'es',
+    categoryLabel: 'Brunch & Amistad',
+    icon: '🌸',
+  },
+  {
+    id: 'soc-es-7',
+    phrase: 'La felicidad sabe mejor cuando se comparte ✨',
+    category: 'social',
+    lang: 'es',
+    categoryLabel: 'Brunch & Amistad',
+    icon: '✨',
+  },
+  {
+    id: 'soc-es-8',
+    phrase: 'Un oasis de paz y sabor en medio de la ciudad 🌿',
+    category: 'social',
+    lang: 'es',
+    categoryLabel: 'Brunch & Amistad',
+    icon: '🌿',
+  },
+  {
+    id: 'soc-es-9',
+    phrase: 'Abrazos cálidos, galletas tibias y buena vibra ♡',
+    category: 'social',
+    lang: 'es',
+    categoryLabel: 'Brunch & Amistad',
+    icon: '🍰',
+  },
+  {
+    id: 'soc-es-10',
+    phrase: 'Momentos simples que se convierten en tesoros ✨',
+    category: 'social',
+    lang: 'es',
+    categoryLabel: 'Brunch & Amistad',
+    icon: '🌸',
+  },
+
+  // English (EN)
+  {
+    id: 'soc-en-1',
+    phrase: 'Matcha made in heaven with best friends ♡',
+    category: 'social',
+    lang: 'en',
+    categoryLabel: 'Social & Friends',
+    icon: '🌸',
+  },
+  {
+    id: 'soc-en-2',
+    phrase: 'Sip, smile, repeat ✨',
+    category: 'social',
+    lang: 'en',
+    categoryLabel: 'Social & Friends',
+    icon: '🥂',
+  },
+  {
+    id: 'soc-en-3',
+    phrase: 'Warm hugs, sweet treats & matcha lattes ♡',
+    category: 'social',
+    lang: 'en',
+    categoryLabel: 'Social & Friends',
+    icon: '🍰',
+  },
+  {
+    id: 'soc-en-4',
+    phrase: 'Good company, great energy, golden hours ☀️',
+    category: 'social',
+    lang: 'en',
+    categoryLabel: 'Social & Friends',
+    icon: '✨',
+  },
+  {
+    id: 'soc-en-5',
+    phrase: 'Shower of love for the sweet mom-to-be 👶',
+    category: 'social',
+    lang: 'en',
+    categoryLabel: 'Baby & Bridal Shower',
+    icon: '👶',
+  },
+  {
+    id: 'soc-en-6',
+    phrase: 'Bride squad, iced matchas & wedding excitement 💍',
+    category: 'social',
+    lang: 'en',
+    categoryLabel: 'Baby & Bridal Shower',
+    icon: '💍',
+  },
+  {
+    id: 'soc-en-7',
+    phrase: 'Happiness is homemade, moments are shared ♡',
+    category: 'social',
+    lang: 'en',
+    categoryLabel: 'Social & Friends',
+    icon: '🍰',
+  },
+  {
+    id: 'soc-en-8',
+    phrase: 'Sunday brunch mood: peaceful, sunny & sweet ☀️',
+    category: 'social',
+    lang: 'en',
+    categoryLabel: 'Social & Friends',
+    icon: '🌸',
+  },
+  {
+    id: 'soc-en-9',
+    phrase: 'Cherish every gentle conversation over tea 🍵',
+    category: 'social',
+    lang: 'en',
+    categoryLabel: 'Social & Friends',
+    icon: '💬',
+  },
+  {
+    id: 'soc-en-10',
+    phrase: 'Surround yourself with light, love and matcha ✨',
+    category: 'social',
+    lang: 'en',
+    categoryLabel: 'Social & Friends',
+    icon: '✨',
+  },
+
+  // =========================================================================
+  // 🎓 GRADUACIÓN & ÉXITO / MILESTONES & SUCCESS
+  // =========================================================================
+  // Español (ES)
+  {
+    id: 'grad-es-1',
+    phrase: 'El esfuerzo de hoy es el triunfo de mañana ✨',
+    category: 'graduacion',
+    lang: 'es',
+    categoryLabel: 'Graduación & Éxito',
+    icon: '🎓',
+  },
+  {
+    id: 'grad-es-2',
+    phrase: 'El futuro pertenece a quienes creen en sus sueños 🚀',
+    category: 'graduacion',
+    lang: 'es',
+    categoryLabel: 'Graduación & Éxito',
+    icon: '🌟',
+  },
+  {
+    id: 'grad-es-3',
+    phrase: 'Celebramos tu gran logro con orgullo y admiración 🏆',
+    category: 'graduacion',
+    lang: 'es',
+    categoryLabel: 'Graduación & Éxito',
+    icon: '🏆',
+  },
+  {
+    id: 'grad-es-4',
+    phrase: 'Un paso gigante hacia tus más altas metas 🎓',
+    category: 'graduacion',
+    lang: 'es',
+    categoryLabel: 'Graduación & Éxito',
+    icon: '🎓',
+  },
+  {
+    id: 'grad-es-5',
+    phrase: 'Brindemos por los nuevos comienzos y grandes victorias 🥂',
+    category: 'graduacion',
+    lang: 'es',
+    categoryLabel: 'Graduación & Éxito',
+    icon: '🥂',
+  },
+
+  // English (EN)
+  {
+    id: 'grad-en-1',
+    phrase: 'The future belongs to those who believe in their dreams 🎓',
+    category: 'graduacion',
+    lang: 'en',
+    categoryLabel: 'Milestones & Success',
+    icon: '🎓',
+  },
+  {
+    id: 'grad-en-2',
+    phrase: 'Dedication, passion and success realized ✨',
+    category: 'graduacion',
+    lang: 'en',
+    categoryLabel: 'Milestones & Success',
+    icon: '🌟',
+  },
+  {
+    id: 'grad-en-3',
+    phrase: 'Celebrating your milestone with pure pride 🏆',
+    category: 'graduacion',
+    lang: 'en',
+    categoryLabel: 'Milestones & Success',
+    icon: '🏆',
+  },
+  {
+    id: 'grad-en-4',
+    phrase: 'Dream big, work hard, celebrate bold achievements 🚀',
+    category: 'graduacion',
+    lang: 'en',
+    categoryLabel: 'Milestones & Success',
+    icon: '🚀',
+  },
+  {
+    id: 'grad-en-5',
+    phrase: 'Cheers to the next chapter of your remarkable journey 🥂',
+    category: 'graduacion',
+    lang: 'en',
+    categoryLabel: 'Milestones & Success',
+    icon: '🥂',
+  },
+];
+
+// Helper functions
+export function getPhrasesByCategory(
+  category?: 'all' | 'bodas' | 'corporativo' | 'cumpleanos' | 'wellness' | 'social' | 'graduacion',
+  lang?: 'all' | 'es' | 'en'
+): MotivationalPhrase[] {
+  return MOTIVATIONAL_PHRASES.filter((item) => {
+    const matchCat = !category || category === 'all' || item.category === category;
+    const matchLang = !lang || lang === 'all' || item.lang === lang;
+    return matchCat && matchLang;
+  });
+}
+
+export function getRandomPhrase(
+  category?: 'all' | 'bodas' | 'corporativo' | 'cumpleanos' | 'wellness' | 'social' | 'graduacion',
+  lang?: 'all' | 'es' | 'en'
+): MotivationalPhrase {
+  const pool = getPhrasesByCategory(category, lang);
+  if (pool.length === 0) return MOTIVATIONAL_PHRASES[0];
+  const randomIndex = Math.floor(Math.random() * pool.length);
+  return pool[randomIndex];
+}

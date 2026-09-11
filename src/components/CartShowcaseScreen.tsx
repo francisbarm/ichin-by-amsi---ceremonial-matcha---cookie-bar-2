@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
 import { Sparkles, Check, Heart, ShieldCheck, ArrowRight, Lightbulb, Droplets, Leaf, Eye } from 'lucide-react';
+import { 
+  MOTIVATIONAL_PHRASES, 
+  PHRASE_CATEGORIES, 
+  getPhrasesByCategory, 
+  getRandomPhrase 
+} from '../data/motivationalPhrases';
 
 interface CartShowcaseScreenProps {
   onGoToQuoter: () => void;
@@ -23,6 +29,8 @@ export const CartShowcaseScreen: React.FC<CartShowcaseScreenProps> = ({
   const [activeHotspot, setActiveHotspot] = useState<string>('dispenser');
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const [customPhrase, setCustomPhrase] = useState<string>('GOOD HABITS, BETTER DAYS ♡');
+  const [showcaseCategory, setShowcaseCategory] = useState<'all' | 'bodas' | 'corporativo' | 'cumpleanos' | 'wellness' | 'social' | 'graduacion'>('all');
+  const [showcaseLang, setShowcaseLang] = useState<'all' | 'es' | 'en'>('all');
 
   const hotspots: Hotspot[] = [
     {
@@ -336,40 +344,129 @@ export const CartShowcaseScreen: React.FC<CartShowcaseScreenProps> = ({
           </p>
         </div>
 
-        {/* Live Phrase Input & Presets */}
-        <div className="max-w-xl mx-auto mb-8">
-          <label className="block text-xs font-bold uppercase tracking-wider text-[#3C4A3C] mb-2 text-center">
-            Prueba cómo lucirá tu frase en la pizarra del carrito:
-          </label>
-          <div className="relative">
+        {/* Live Phrase Input & Categorized Bilingual Presets */}
+        <div className="max-w-3xl mx-auto mb-8 bg-white p-4 sm:p-6 rounded-3xl border border-[#E6DFD4] shadow-sm space-y-4">
+          <div className="text-center">
+            <label className="block text-xs font-bold uppercase tracking-wider text-[#3C4A3C] mb-1">
+              Prueba en tiempo real cómo lucirá tu frase en la pizarra del carrito:
+            </label>
+            <p className="text-[11px] text-[#6A7869]">
+              Escribe lo que desees o explora nuestras frases motivacionales recomendadas por tipo de evento en <strong>Español e Inglés</strong>:
+            </p>
+          </div>
+
+          <div className="relative max-w-xl mx-auto">
             <input
               type="text"
               value={customPhrase}
               onChange={(e) => setCustomPhrase(e.target.value)}
               placeholder="Escribe aquí tu frase (ej. GOOD HABITS, BETTER DAYS ♡)"
-              className="w-full py-3 px-4 pr-10 rounded-2xl bg-white border-2 border-[#7A8E77] text-[#3C4A3C] font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-[#455546] text-center"
+              className="w-full py-3 px-4 pr-10 rounded-2xl bg-[#FAF8F4] border-2 border-[#7A8E77] text-[#3C4A3C] font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-[#455546] text-center"
             />
+            {customPhrase && (
+              <button
+                type="button"
+                onClick={() => setCustomPhrase('')}
+                className="absolute right-3 top-3 text-sm text-[#9BB098] hover:text-[#455546]"
+                title="Limpiar"
+              >
+                ✕
+              </button>
+            )}
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-2 mt-3">
-            {[
-              'GOOD HABITS, BETTER DAYS ♡',
-              'GOOD DRINKS, BRIGHTER DAYS ♡',
-              'BEBIDAS NATURALES PARA GRANDES IDEAS',
-              'BODA VALERIA & RODRIGO 2026',
-              'AMSI PRIVATE EVENT ♡',
-            ].map((phrase) => (
+          {/* Controls: Language Selector & Randomizer */}
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-[#E6DFD4]">
+            {/* Language filter */}
+            <div className="flex items-center gap-1 bg-[#FAF8F4] p-1 rounded-xl border border-[#E6DFD4]">
               <button
-                key={phrase}
                 type="button"
-                onClick={() => setCustomPhrase(phrase)}
-                className={`text-[10px] sm:text-xs px-3 py-1 rounded-full border transition-all ${
-                  customPhrase === phrase
-                    ? 'bg-[#455546] text-white border-[#455546]'
-                    : 'bg-white text-[#6A7869] border-[#E6DFD4] hover:border-[#7A8E77]'
+                onClick={() => setShowcaseLang('all')}
+                className={`text-[10px] px-2.5 py-1 rounded-lg font-bold transition-all ${
+                  showcaseLang === 'all'
+                    ? 'bg-[#455546] text-white shadow-xs'
+                    : 'text-[#525B4F] hover:text-[#3C4A3C]'
                 }`}
               >
-                {phrase}
+                🌐 Ambos
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowcaseLang('es')}
+                className={`text-[10px] px-2.5 py-1 rounded-lg font-bold transition-all ${
+                  showcaseLang === 'es'
+                    ? 'bg-[#455546] text-white shadow-xs'
+                    : 'text-[#525B4F] hover:text-[#3C4A3C]'
+                }`}
+              >
+                🇪🇸 Español
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowcaseLang('en')}
+                className={`text-[10px] px-2.5 py-1 rounded-lg font-bold transition-all ${
+                  showcaseLang === 'en'
+                    ? 'bg-[#455546] text-white shadow-xs'
+                    : 'text-[#525B4F] hover:text-[#3C4A3C]'
+                }`}
+              >
+                🇺🇸 English
+              </button>
+            </div>
+
+            {/* Randomizer */}
+            <button
+              type="button"
+              onClick={() => {
+                const rnd = getRandomPhrase(showcaseCategory, showcaseLang);
+                setCustomPhrase(rnd.phrase);
+              }}
+              className="text-[10px] font-bold px-3 py-1.5 rounded-xl bg-[#EDE7DC] hover:bg-[#D4C4AA]/70 text-[#3C4A3C] border border-[#D4C4AA] transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+            >
+              <span>🎲</span>
+              <span>Probar Frase Aleatoria</span>
+            </button>
+          </div>
+
+          {/* Category Tabs */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+            {PHRASE_CATEGORIES.map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => setShowcaseCategory(cat.id as any)}
+                className={`text-[11px] px-3 py-1.5 rounded-xl whitespace-nowrap font-medium transition-all flex items-center gap-1 ${
+                  showcaseCategory === cat.id
+                    ? 'bg-[#7A8E77] text-white shadow-xs font-bold'
+                    : 'bg-[#FAF8F4] text-[#525B4F] border border-[#E6DFD4] hover:bg-[#F3EFE7]'
+                }`}
+              >
+                <span>{cat.icon}</span>
+                <span>{showcaseLang === 'en' ? cat.labelEn : cat.labelEs}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Horizontal scrollable pills */}
+          <div className="flex flex-wrap items-center justify-center gap-2 max-h-36 overflow-y-auto p-2 bg-[#FAF8F4] rounded-2xl border border-[#E6DFD4]">
+            {getPhrasesByCategory(showcaseCategory, showcaseLang).map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setCustomPhrase(item.phrase)}
+                className={`text-[10px] sm:text-xs px-3 py-1.5 rounded-full border transition-all flex items-center gap-1.5 ${
+                  customPhrase === item.phrase
+                    ? 'bg-[#455546] text-white border-[#455546] font-bold shadow-xs'
+                    : 'bg-white text-[#525B4F] border-[#E6DFD4] hover:border-[#7A8E77] hover:bg-[#F8F6F0]'
+                }`}
+              >
+                <span>{item.icon}</span>
+                <span>"{item.phrase}"</span>
+                <span className={`text-[8px] px-1 rounded uppercase font-bold ${
+                  customPhrase === item.phrase ? 'bg-white/20 text-white' : 'bg-[#FAF8F4] text-[#7A8E77]'
+                }`}>
+                  {item.lang}
+                </span>
               </button>
             ))}
           </div>
@@ -436,6 +533,137 @@ export const CartShowcaseScreen: React.FC<CartShowcaseScreenProps> = ({
             >
               Configurar mi frase en el cotizador
             </button>
+          </div>
+        </div>
+
+        {/* Curated Bilingual Event Signage Gallery */}
+        <div className="mt-8 pt-8 border-t border-[#E6DFD4]">
+          <div className="text-center max-w-xl mx-auto mb-6">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-[#7A8E77] bg-white px-3 py-1 rounded-full border border-[#D4C4AA]">
+              Inspiración para tu Evento
+            </span>
+            <h3 className="text-lg sm:text-xl font-bold text-[#3C4A3C] mt-2 font-editorial">
+              Frases Más Solicitadas por Tipo de Celebración
+            </h3>
+            <p className="text-xs text-[#6A7869] mt-1">
+              Haz clic en cualquiera de estas frases en español o inglés para verla en la pizarra en tiempo real:
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[
+              {
+                icon: '💍',
+                category: 'Bodas & Compromisos',
+                categoryEn: 'Weddings & Romance',
+                phraseEs: 'El amor es la mejor pausa del día ♡',
+                phraseEn: 'All you need is love & ceremonial matcha ♡',
+                tag: 'Boda / Wedding',
+              },
+              {
+                icon: '💡',
+                category: 'Corporativo & Tech',
+                categoryEn: 'Corporate & Focus',
+                phraseEs: 'BEBIDAS NATURALES PARA GRANDES IDEAS 💡',
+                phraseEn: 'NATURAL DRINKS FOR BRIGHT MINDS 💡',
+                tag: 'Brand Activation',
+              },
+              {
+                icon: '🎂',
+                category: 'Cumpleaños VIP',
+                categoryEn: 'Birthdays & Parties',
+                phraseEs: 'Celebrar la vida es el mejor hábito 🥂',
+                phraseEn: 'Cheers to another year of glowing brighter ✨',
+                tag: 'Fiesta Privada',
+              },
+              {
+                icon: '🧘',
+                category: 'Bienestar & Zen',
+                categoryEn: 'Wellness & Mindfulness',
+                phraseEs: 'Pausa consciente, mente en calma 🌿',
+                phraseEn: 'Peace of mind in every single sip 🌿',
+                tag: 'Retiros & Yoga',
+              },
+              {
+                icon: '🌸',
+                category: 'Brunch & Social',
+                categoryEn: 'Brunch & Friends',
+                phraseEs: 'El matcha nos une, la amistad nos llena ♡',
+                phraseEn: 'Matcha made in heaven with best friends ♡',
+                tag: 'Baby & Bridal Shower',
+              },
+              {
+                icon: '🎓',
+                category: 'Graduación & Éxito',
+                categoryEn: 'Milestones & Success',
+                phraseEs: 'El esfuerzo de hoy es el triunfo de mañana ✨',
+                phraseEn: 'The future belongs to those who believe in dreams 🎓',
+                tag: 'Celebración de Logros',
+              },
+            ].map((card, idx) => (
+              <div
+                key={idx}
+                className="bg-white rounded-2xl p-4 border border-[#E6DFD4] shadow-xs hover:border-[#7A8E77] transition-all flex flex-col justify-between space-y-3"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-base">{card.icon}</span>
+                      <span className="text-xs font-bold text-[#3C4A3C]">{card.category}</span>
+                    </div>
+                    <span className="text-[9px] font-bold text-[#7A8E77] bg-[#FAF8F4] px-2 py-0.5 rounded-full border border-[#E6DFD4]">
+                      {card.tag}
+                    </span>
+                  </div>
+                  <div className="text-[10px] text-[#8C988B] mb-2">{card.categoryEn}</div>
+
+                  {/* ES Phrase */}
+                  <div className="p-2 rounded-xl bg-[#FAF8F4] border border-[#E6DFD4] mb-2">
+                    <div className="text-[9px] font-bold text-[#7A8E77] uppercase flex items-center justify-between mb-0.5">
+                      <span>🇪🇸 Español</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCustomPhrase(card.phraseEs);
+                          window.scrollTo({ top: 900, behavior: 'smooth' });
+                        }}
+                        className="text-[9px] text-[#455546] font-bold underline hover:text-[#7A8E77]"
+                      >
+                        Aplicar
+                      </button>
+                    </div>
+                    <p className="text-[11px] font-serif text-[#3C4A3C] italic font-semibold">
+                      "{card.phraseEs}"
+                    </p>
+                  </div>
+
+                  {/* EN Phrase */}
+                  <div className="p-2 rounded-xl bg-[#FAF8F4] border border-[#E6DFD4]">
+                    <div className="text-[9px] font-bold text-[#7A8E77] uppercase flex items-center justify-between mb-0.5">
+                      <span>🇺🇸 English</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCustomPhrase(card.phraseEn);
+                          window.scrollTo({ top: 900, behavior: 'smooth' });
+                        }}
+                        className="text-[9px] text-[#455546] font-bold underline hover:text-[#7A8E77]"
+                      >
+                        Apply
+                      </button>
+                    </div>
+                    <p className="text-[11px] font-serif text-[#3C4A3C] italic font-semibold">
+                      "{card.phraseEn}"
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-1 flex items-center justify-between border-t border-[#E6DFD4]">
+                  <span className="text-[10px] text-[#6A7869]">Rotulada a mano en tiza</span>
+                  <span className="text-[10px] font-bold text-[#455546]">Gratis en tu paquete</span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
