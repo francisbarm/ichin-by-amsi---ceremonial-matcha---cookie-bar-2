@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BookingRecord, CartOrderItem } from '../types';
-import { Clock, Calendar, MapPin, CheckCircle2, ChevronRight, QrCode, FileText, Sparkles, MessageCircle } from 'lucide-react';
+import { Clock, Calendar, MapPin, CheckCircle2, ChevronRight, QrCode, FileText, Sparkles, MessageCircle, RefreshCw, Database } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 interface OrdersScreenProps {
   bookings: BookingRecord[];
@@ -13,7 +14,48 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
   activeOrders,
   onNewQuoteClick,
 }) => {
-  const [selectedBooking, setSelectedBooking] = useState<BookingRecord | null>(bookings[0] || null);
+  const [supabaseBookings, setSupabaseBookings] = useState<BookingRecord[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const fetchSupabaseBookings = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('ichin_cotizaciones')
+        .select('*')
+        .order('creado_en', { ascending: false });
+
+      if (data && data.length > 0) {
+        const mapped: BookingRecord[] = data.map((item) => ({
+          id: item.id,
+          code: item.resumen_items?.codigo || `ICH-${item.id.slice(0, 4).toUpperCase()}`,
+          clientName: item.cliente_nombre || 'Cliente',
+          eventType: item.tipo_evento || 'Evento',
+          date: item.fecha_evento || 'Por definir',
+          zone: item.lugar_evento || 'Caracas',
+          packageTitle: item.paquete_nombre || 'Paquete Ceremonial',
+          guests: item.numero_invitados || 50,
+          totalUsd: 0,
+          status: item.estado === 'confirmado' ? 'confirmed' : item.estado === 'en_prep' ? 'in_prep' : 'pending',
+          statusLabel: item.estado === 'confirmado' ? 'Confirmado' : item.estado === 'en_prep' ? 'En Preparación' : 'En Revisión',
+          createdAt: new Date(item.creado_en).toLocaleDateString('es-VE'),
+        }));
+        setSupabaseBookings(mapped);
+      }
+    } catch (err) {
+      console.warn('Error al leer de Supabase:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSupabaseBookings();
+  }, []);
+
+  const displayBookings = supabaseBookings.length > 0 ? supabaseBookings : bookings;
+  const [selectedBooking, setSelectedBooking] = useState<BookingRecord | null>(null);
+  const currentSelected = selectedBooking || displayBookings[0] || null;
 
   const getStatusBadge = (status: BookingRecord['status']) => {
     switch (status) {
@@ -57,13 +99,26 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
           </h1>
         </div>
 
-        <button
-          onClick={onNewQuoteClick}
-          className="self-start sm:self-auto py-2.5 px-5 rounded-full bg-[#455546] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#384639] transition-all flex items-center gap-2 shadow-xs"
-        >
-          <Sparkles className="w-3.5 h-3.5 text-[#D4BE9B]" />
-          <span>Nueva Cotización</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={fetchSupabaseBookings}
+            className="py-2.5 px-4 rounded-full bg-white border border-[#E6DFD4] text-[#3C4A3C] text-xs font-bold flex items-center gap-1.5 hover:bg-[#FAF8F4] transition-all shadow-2xs"
+            title="Sincronizar reservas desde Supabase"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 text-[#7A8E77] ${loading ? 'animate-spin' : ''}`} />
+            <span>{loading ? 'Sincronizando...' : 'Actualizar Supabase'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={onNewQuoteClick}
+            className="py-2.5 px-5 rounded-full bg-[#455546] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#384639] transition-all flex items-center gap-2 shadow-xs"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-[#D4BE9B]" />
+            <span>Nueva Cotización</span>
+          </button>
+        </div>
       </div>
 
       {/* Grid: Left Bookings List, Right Digital Ticket */}
@@ -71,12 +126,18 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
         
         {/* Bookings List (7 Cols) */}
         <div className="lg:col-span-7 space-y-4">
-          <div className="text-xs font-bold uppercase tracking-wider text-[#75786E] px-1">
-            Eventos Programados en Caracas ({bookings.length})
+          <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#75786E] px-1">
+            <span>Eventos Registrados en Caracas ({displayBookings.length})</span>
+            {supabaseBookings.length > 0 && (
+              <span className="text-[10px] text-[#7A8E77] font-bold lowercase flex items-center gap-1">
+                <Database className="w-3 h-3" />
+                <span>conectado a Supabase CRM</span>
+              </span>
+            )}
           </div>
 
-          {bookings.map((b) => {
-            const isSelected = selectedBooking?.id === b.id;
+          {displayBookings.map((b) => {
+            const isSelected = currentSelected?.id === b.id;
             return (
               <div
                 key={b.id}
@@ -152,7 +213,7 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
         </div>
 
         {/* Selected Booking Digital Ticket (5 Cols) */}
-        {selectedBooking && (
+        {currentSelected && (
           <div className="lg:col-span-5 sticky top-24">
             <div className="bg-white rounded-3xl border border-[#E6DFD4] shadow-lg overflow-hidden">
               
@@ -179,39 +240,39 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
                   <div>
                     <span className="text-[10px] text-gray-400 uppercase font-bold">Código Ticket</span>
                     <div className="font-mono font-black text-sm text-[#3C4A3C]">
-                      {selectedBooking.code}
+                      {currentSelected.code}
                     </div>
                   </div>
                   <div>
                     <span className="text-[10px] text-gray-400 uppercase font-bold">Estado</span>
-                    <div>{getStatusBadge(selectedBooking.status)}</div>
+                    <div>{getStatusBadge(currentSelected.status)}</div>
                   </div>
                 </div>
 
                 <div className="space-y-2 text-xs">
                   <div className="flex justify-between">
                     <span className="text-gray-500">Titular del Evento:</span>
-                    <span className="font-bold text-[#3C4A3C]">{selectedBooking.clientName}</span>
+                    <span className="font-bold text-[#3C4A3C]">{currentSelected.clientName}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Tipo de Celebración:</span>
-                    <span className="font-bold text-[#3C4A3C]">{selectedBooking.eventType}</span>
+                    <span className="font-bold text-[#3C4A3C]">{currentSelected.eventType}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Fecha del Servicio:</span>
-                    <span className="font-bold text-[#3C4A3C]">{selectedBooking.date}</span>
+                    <span className="font-bold text-[#3C4A3C]">{currentSelected.date}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Locación:</span>
-                    <span className="font-bold text-[#3C4A3C]">{selectedBooking.zone}</span>
+                    <span className="font-bold text-[#3C4A3C]">{currentSelected.zone}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Paquete Contratado:</span>
-                    <span className="font-bold text-[#3C4A3C]">{selectedBooking.packageTitle}</span>
+                    <span className="font-bold text-[#3C4A3C]">{currentSelected.packageTitle}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Capacidad:</span>
-                    <span className="font-bold text-[#3C4A3C]">{selectedBooking.guests} tazas estimadas</span>
+                    <span className="font-bold text-[#3C4A3C]">{currentSelected.guests} tazas estimadas</span>
                   </div>
                 </div>
 
@@ -226,11 +287,11 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
                       <span>1. Solicitud y cotización registrada</span>
                     </div>
                     <div className="flex items-center gap-2 text-[#3C4A3C]">
-                      <CheckCircle2 className={`w-4 h-4 ${selectedBooking.status !== 'pending' ? 'text-[#7A8E77]' : 'text-gray-300'}`} />
+                      <CheckCircle2 className={`w-4 h-4 ${currentSelected.status !== 'pending' ? 'text-[#7A8E77]' : 'text-gray-300'}`} />
                       <span>2. Bloqueo de agenda y asignación de carrito</span>
                     </div>
                     <div className="flex items-center gap-2 text-[#3C4A3C]">
-                      <CheckCircle2 className={`w-4 h-4 ${selectedBooking.status === 'confirmed' ? 'text-[#7A8E77]' : 'text-gray-300'}`} />
+                      <CheckCircle2 className={`w-4 h-4 ${currentSelected.status === 'confirmed' ? 'text-[#7A8E77]' : 'text-gray-300'}`} />
                       <span>3. Insumos frescos Uji y baristas confirmados</span>
                     </div>
                   </div>
@@ -253,7 +314,7 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
                   </div>
 
                   <a
-                    href={`https://wa.me/584143260003?text=${encodeURIComponent(`Hola, quiero consultar el estado de mi reserva ${selectedBooking.code}`)}`}
+                    href={`https://wa.me/584143260003?text=${encodeURIComponent(`Hola, quiero consultar el estado de mi reserva ${currentSelected.code}`)}`}
                     target="_blank"
                     rel="noreferrer"
                     className="p-2.5 rounded-full bg-[#455546] text-white hover:bg-[#384639] transition-all"
