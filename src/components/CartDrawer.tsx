@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { CartOrderItem } from '../types';
-import { X, Trash2, Plus, Minus, ShoppingBag, Send, Calendar, Sparkles, MapPin } from 'lucide-react';
+import { X, Trash2, Plus, Minus, ShoppingBag, Send, Calendar, Sparkles, MapPin, Mail, MessageCircle, CheckCircle2 } from 'lucide-react';
 import { CARACAS_ZONES } from '../data/eventPackages';
 import { guardarPedidoCarritoSupabase } from '../lib/supabase';
+import { generarMailtoPedidoCarrito } from '../services/resendService';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -24,14 +25,80 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   if (!isOpen) return null;
 
   const [customerName, setCustomerName] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
   const [eventType, setEventType] = useState('Boda / Evento Privado');
   const [eventZone, setEventZone] = useState('Altamira / Country Club');
   const [eventDate, setEventDate] = useState('');
   const [tipPercentage, setTipPercentage] = useState<number>(0);
+  const [emailSentSuccess, setEmailSentSuccess] = useState(false);
+  const [cartEmailError, setCartEmailError] = useState<string | null>(null);
 
   const subtotal = items.reduce((sum, item) => sum + item.subtotal, 0);
   const tipAmount = (subtotal * tipPercentage) / 100;
   const total = subtotal + tipAmount;
+
+  const formatItemsListText = () => {
+    let text = '';
+    items.forEach((item, i) => {
+      text += `\n${i + 1}. ${item.quantity}x ${item.item.name}`;
+      if (item.customization?.milk) text += ` | Leche: ${item.customization.milk}`;
+      if (item.customization?.sweetener) text += ` | Endulzante: ${item.customization.sweetener}`;
+      if (item.customization?.iceLevel) text += ` | Hielo: ${item.customization.iceLevel}`;
+      if (item.customization?.extraShot) text += ` | Extra Shot Ceremonial (+3g)`;
+      if (item.customization?.coldFoam) text += ` | Cold Foam Botánica`;
+      if (item.customization?.charmPiece) text += ` | Charm: ${item.customization.charmPiece} (+$1.00)`;
+      if (item.customization?.notes) text += ` | Nota: ${item.customization.notes}`;
+    });
+    return text;
+  };
+
+  const handleSendOrderEmail = async () => {
+    if (items.length === 0) return;
+
+    if (!customerEmail || !customerEmail.includes('@')) {
+      setCartEmailError('Por favor ingresa tu correo electrónico.');
+      const el = document.getElementById('cart-email-input');
+      if (el) el.focus();
+      return;
+    }
+
+    setCartEmailError(null);
+    const itemsSummary = items.map(it => `${it.quantity}x ${it.item.name}`).join(', ');
+
+    // 1. Guardar de forma garantizada en Supabase
+    await guardarPedidoCarritoSupabase({
+      nombre: customerName || 'Anfitrión Web',
+      telefono: customerPhone || 'No indicado',
+      email: customerEmail,
+      itemsResumen: itemsSummary,
+      totalItems: items.reduce((acc, it) => acc + it.quantity, 0),
+      tipoEvento: eventType,
+      zona: eventZone,
+      fecha: eventDate,
+    });
+
+    // 2. Abrir correo pre-redactado
+    const mailtoUrl = generarMailtoPedidoCarrito({
+      customerName: customerName || 'Anfitrión',
+      customerEmail: customerEmail,
+      customerPhone: customerPhone,
+      eventType: eventType,
+      eventZone: eventZone,
+      eventDate: eventDate,
+      itemsList: formatItemsListText(),
+      totalEstimated: total,
+    });
+
+    try {
+      window.location.href = mailtoUrl;
+    } catch (e) {
+      console.log('Mailto error:', e);
+    }
+
+    setEmailSentSuccess(true);
+    setTimeout(() => setEmailSentSuccess(false), 5000);
+  };
 
   const handleSendOrderWhatsApp = () => {
     if (items.length === 0) return;
@@ -69,16 +136,22 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
       `\n• *Tipo de Evento:* ${eventType}` +
       `\n• *Zona Caracas:* ${eventZone}` +
       (eventDate ? `\n• *Fecha tentativa:* ${eventDate}` : '') +
-      `\n• *Contacto:* ${customerName || 'Anfitrión'}\n\n` +
-      `¿Tienen disponibilidad en agenda para esta fecha? ¡Muchas gracias!`
+      `\n• *Contacto:* ${customerName || 'Anfitrión'}` +
+      (customerEmail ? `\n• *Email:* ${customerEmail}` : '') +
+      (customerPhone ? `\n• *Teléfono:* ${customerPhone}` : '') +
+      `\n\n¿Tienen disponibilidad en agenda para esta fecha? ¡Muchas gracias!`
     );
 
-    // Guardar en Supabase (leads de AMSI CRM)
+    // Guardar en Supabase (leads de AMSI CRM e ichin_cotizaciones)
     guardarPedidoCarritoSupabase({
       nombre: customerName || 'Anfitrión Web',
-      telefono: 'WhatsApp Directo',
+      telefono: customerPhone || 'WhatsApp Directo',
+      email: customerEmail || undefined,
       itemsResumen: items.map(it => `${it.quantity}x ${it.item.name}`).join(', '),
       totalItems: items.reduce((acc, it) => acc + it.quantity, 0),
+      tipoEvento: eventType,
+      zona: eventZone,
+      fecha: eventDate,
     });
 
     window.open(`https://wa.me/584143260003?text=${msg}`, '_blank');
@@ -316,6 +389,56 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   </div>
                 </div>
 
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase text-[#7A8E77] mb-1 flex items-center gap-1">
+                      <span>Correo Electrónico</span>
+                      <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      id="cart-email-input"
+                      type="email"
+                      placeholder="ejemplo@correo.com"
+                      value={customerEmail}
+                      onChange={(e) => {
+                        setCustomerEmail(e.target.value);
+                        if (cartEmailError) setCartEmailError(null);
+                      }}
+                      className={`w-full px-2.5 py-1.5 text-xs bg-[#FAF8F4] border ${cartEmailError ? 'border-red-400 bg-red-50/30' : 'border-[#E6DFD4]'} rounded-xl focus:outline-none focus:border-[#7A8E77] text-[#3C4A3C]`}
+                    />
+                    {cartEmailError && (
+                      <p className="text-[10px] text-red-500 mt-0.5">{cartEmailError}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase text-[#7A8E77] mb-1">
+                      Teléfono / WhatsApp
+                    </label>
+                    <input
+                      type="tel"
+                      placeholder="+58 414 1234567"
+                      value={customerPhone}
+                      onChange={(e) => setCustomerPhone(e.target.value)}
+                      className="w-full px-2.5 py-1.5 text-xs bg-[#FAF8F4] border border-[#E6DFD4] rounded-xl focus:outline-none focus:border-[#7A8E77] text-[#3C4A3C]"
+                    />
+                  </div>
+                </div>
+
+                {/* Database Retention Notice */}
+                <div className="flex items-center gap-1.5 bg-[#455546]/10 px-2.5 py-1.5 rounded-xl border border-[#455546]/20 text-[10px] text-[#3C4A3C]">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                  <span className="font-medium">
+                    Base de Datos Supabase activa: tu selección y datos quedan guardados y respaldados.
+                  </span>
+                </div>
+
+                {emailSentSuccess && (
+                  <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs flex items-center gap-2 animate-fadeIn">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>¡Solicitud guardada en base de datos y correo preparado para enviar!</span>
+                  </div>
+                )}
+
                 <div className="text-[10px] text-[#6A7869] flex items-center gap-1.5 pt-1">
                   <MapPin className="w-3 h-3 text-[#7A8E77] shrink-0" />
                   <span>El carrito se traslada e instala en tu locación con baristas y chasen en vivo.</span>
@@ -327,7 +450,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
         {/* Checkout Footer */}
         {items.length > 0 && (
-          <div className="p-4 bg-white border-t border-[#E6DFD4] space-y-3">
+          <div className="p-4 bg-white border-t border-[#E6DFD4] space-y-2.5">
             <div className="space-y-1 text-xs text-[#6A7869]">
               <div className="flex justify-between">
                 <span>Selección total:</span>
@@ -343,13 +466,30 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               🛡️ Servicio en vasos PET cristalinos premium (cero vidrio por seguridad en eventos).
             </div>
 
+            {/* Email Request Button (Primary) */}
+            <button
+              id="cart-email-btn"
+              onClick={handleSendOrderEmail}
+              className="w-full py-3 px-5 rounded-full bg-[#455546] text-white hover:bg-[#384639] transition-all font-bold text-xs uppercase tracking-wider flex items-center justify-between shadow-md hover:shadow-lg"
+            >
+              <div className="flex items-center gap-2">
+                <Mail className="w-4 h-4 text-[#B69C76]" />
+                <span>Solicitar Cotización por Correo</span>
+              </div>
+              <span className="text-[10px] text-[#B69C76] font-normal lowercase bg-black/20 px-2 py-0.5 rounded-full">Formal</span>
+            </button>
+
+            {/* WhatsApp Request Button (Secondary) */}
             <button
               id="checkout-whatsapp-btn"
               onClick={handleSendOrderWhatsApp}
-              className="w-full py-3.5 px-6 rounded-full bg-[#455546] text-white hover:bg-[#384639] transition-all font-bold text-xs uppercase tracking-wider flex items-center justify-between shadow-md"
+              className="w-full py-2.5 px-5 rounded-full bg-[#FAF8F4] text-[#3C4A3C] border border-[#7A8E77]/40 hover:bg-[#EAE5D9] transition-all font-semibold text-xs tracking-wide flex items-center justify-between"
             >
-              <span>Solicitar Carrito Móvil por WhatsApp</span>
-              <Send className="w-4 h-4 text-[#B69C76]" />
+              <div className="flex items-center gap-2">
+                <MessageCircle className="w-4 h-4 text-[#25D366]" />
+                <span>O Consultar por WhatsApp</span>
+              </div>
+              <Send className="w-3.5 h-3.5 text-[#7A8E77]" />
             </button>
           </div>
         )}

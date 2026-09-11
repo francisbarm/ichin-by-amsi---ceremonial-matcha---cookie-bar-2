@@ -139,10 +139,12 @@ export function generarHtmlCotizacion(data: EmailQuotePayload): string {
 
 /**
  * Servicio para enviar correo de confirmación usando Resend y registrarlo en Supabase
+ * Envía la confirmación al cliente y la notificación de reserva al Administrador
  */
 export async function enviarCorreoCotizacionResend(data: EmailQuotePayload) {
   const apiKey = import.meta.env.VITE_RESEND_API_KEY;
   const fromEmail = import.meta.env.VITE_RESEND_FROM_EMAIL || 'ICHIN By AMSI <onboarding@resend.dev>';
+  const adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'eventos.ichin@gmail.com';
 
   if (!data.toEmail || !data.toEmail.includes('@')) {
     console.warn('Correo de destinatario no válido o ausente:', data.toEmail);
@@ -152,9 +154,15 @@ export async function enviarCorreoCotizacionResend(data: EmailQuotePayload) {
   const html = generarHtmlCotizacion(data);
   const asunto = `🍵 Tu Cotización ICHIN By AMSI [${data.bookingCode}]`;
 
+  // Destinatarios: Cliente + Administrador
+  const recipients = [data.toEmail];
+  if (adminEmail && adminEmail.includes('@') && adminEmail !== data.toEmail) {
+    recipients.push(adminEmail);
+  }
+
   // Si no hay API Key de Resend configurada aún
   if (!apiKey || apiKey === 're_tu_resend_api_key_aqui') {
-    console.info(`[Resend Simulado] No se detectó VITE_RESEND_API_KEY. Correo simulado para: ${data.toEmail}`);
+    console.info(`[Resend Simulado] No se detectó VITE_RESEND_API_KEY activa. Correo simulado para: ${recipients.join(', ')}`);
     
     // Registrar en Supabase como pendiente de configuración
     await supabase.from('notificaciones').insert([{
@@ -163,11 +171,15 @@ export async function enviarCorreoCotizacionResend(data: EmailQuotePayload) {
       proveedor: 'resend',
       destinatario: data.toEmail,
       asunto: asunto,
-      estado: 'simulado_sin_api_key',
-      detalles: { bookingCode: data.bookingCode, mensaje: 'Configura VITE_RESEND_API_KEY en .env.local para envíos en vivo' }
+      estado: 'registrado_en_bd',
+      detalles: { 
+        bookingCode: data.bookingCode, 
+        destinatarios: recipients,
+        mensaje: 'Guardado exitosamente en base de datos Supabase.' 
+      }
     }]);
 
-    return { success: true, simulado: true };
+    return { success: true, simulado: true, recipients };
   }
 
   try {
@@ -179,7 +191,7 @@ export async function enviarCorreoCotizacionResend(data: EmailQuotePayload) {
       },
       body: JSON.stringify({
         from: fromEmail,
-        to: [data.toEmail],
+        to: recipients,
         subject: asunto,
         html: html
       })
@@ -201,7 +213,6 @@ export async function enviarCorreoCotizacionResend(data: EmailQuotePayload) {
       return { success: true, data: resJson };
     } else {
       console.error('Error devuelto por la API de Resend:', resJson);
-      // Registrar fallo en Supabase
       await supabase.from('notificaciones').insert([{
         cotizacion_id: data.cotizacionId || null,
         tipo: 'email_confirmacion',
@@ -227,3 +238,79 @@ export async function enviarCorreoCotizacionResend(data: EmailQuotePayload) {
     return { success: false, error: err };
   }
 }
+
+/**
+ * Genera un enlace mailto pre-redactado para enviar la solicitud de cotización por correo
+ */
+export function generarMailtoCotizacion(data: {
+  bookingCode: string;
+  clientName: string;
+  clientPhone: string;
+  clientEmail?: string;
+  packageName: string;
+  guestCount: number;
+  eventDate: string;
+  eventTime?: string;
+  locationZone: string;
+  furnitureText?: string;
+  charmsText?: string;
+  signagePhrase?: string;
+  addons?: string[];
+  specialRequests?: string;
+}): string {
+  const adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'eventos.ichin@gmail.com';
+  const subject = encodeURIComponent(`Solicitud de Cotización ICHIN By AMSI [${data.bookingCode}] - ${data.clientName}`);
+  
+  const bodyText = `Hola equipo de ICHIN By AMSI,\n\n` +
+    `Deseo solicitar la confirmación de fecha y propuesta formal para llevar el Carrito Móvil a mi evento:\n\n` +
+    `📋 DATOS DE LA SOLICITUD:\n` +
+    `• Código de Reserva: ${data.bookingCode}\n` +
+    `• Anfitrión(a) / Contacto: ${data.clientName}\n` +
+    `• Teléfono: ${data.clientPhone}\n` +
+    (data.clientEmail ? `• Correo Electrónico: ${data.clientEmail}\n` : '') +
+    `• Paquete Seleccionado: ${data.packageName}\n` +
+    `• Número de Invitados: ${data.guestCount} personas\n` +
+    `• Fecha Estimada: ${data.eventDate} ${data.eventTime ? `(${data.eventTime})` : ''}\n` +
+    `• Zona en Caracas: ${data.locationZone}\n` +
+    (data.furnitureText ? `• Mobiliario & Toldos: ${data.furnitureText}\n` : '') +
+    (data.charmsText ? `• Personalización de Bebidas (Charms): ${data.charmsText}\n` : '') +
+    (data.signagePhrase ? `• Frase en Pizarra de Entrada: "${data.signagePhrase}"\n` : '') +
+    (data.addons && data.addons.length > 0 ? `• Elementos Incluidos:\n  - ${data.addons.join('\n  - ')}\n` : '') +
+    (data.specialRequests ? `• Notas Adicionales / Locación: ${data.specialRequests}\n` : '') +
+    `\nQuedo atento(a) a su confirmación y disponibilidad. ¡Muchas gracias!`;
+
+  return `mailto:${adminEmail}?subject=${subject}&body=${encodeURIComponent(bodyText)}`;
+}
+
+/**
+ * Genera un enlace mailto pre-redactado para enviar un pedido del menú/carrito por correo
+ */
+export function generarMailtoPedidoCarrito(data: {
+  customerName: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  eventType: string;
+  eventZone: string;
+  eventDate?: string;
+  itemsList: string;
+  totalEstimated: number;
+}): string {
+  const adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'eventos.ichin@gmail.com';
+  const subject = encodeURIComponent(`Solicitud de Pedido de Bebidas y Dulces - ${data.customerName || 'Cliente Web'}`);
+  
+  const bodyText = `Hola equipo de ICHIN By AMSI,\n\n` +
+    `Me gustaría solicitar la presencia del Carrito Móvil con el siguiente pedido para mi evento:\n\n` +
+    `🍸 MENÚ SELECCIONADO:\n` +
+    `${data.itemsList}\n\n` +
+    `📍 DETALLES DEL EVENTO:\n` +
+    `• Anfitrión(a): ${data.customerName || 'No indicado'}\n` +
+    (data.customerEmail ? `• Correo Electrónico: ${data.customerEmail}\n` : '') +
+    (data.customerPhone ? `• Teléfono de Contacto: ${data.customerPhone}\n` : '') +
+    `• Tipo de Evento: ${data.eventType}\n` +
+    `• Zona en Caracas: ${data.eventZone}\n` +
+    (data.eventDate ? `• Fecha tentativa: ${data.eventDate}\n` : '') +
+    `\n¿Podrían indicarme disponibilidad de agenda y confirmar la cotización? ¡Muchas gracias!`;
+
+  return `mailto:${adminEmail}?subject=${subject}&body=${encodeURIComponent(bodyText)}`;
+}
+

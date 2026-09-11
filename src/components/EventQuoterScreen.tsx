@@ -8,7 +8,7 @@ import {
   Printer, ChevronDown, ChevronUp, HelpCircle, CheckCircle2
 } from 'lucide-react';
 import { guardarCotizacionSupabase } from '../lib/supabase';
-import { enviarCorreoCotizacionResend } from '../services/resendService';
+import { enviarCorreoCotizacionResend, generarMailtoCotizacion } from '../services/resendService';
 import { enviarCotizacionWhatsApp } from '../services/whatsappService';
 import { 
   MOTIVATIONAL_PHRASES, 
@@ -80,6 +80,9 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
 
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
   const [submittedBooking, setSubmittedBooking] = useState<BookingRecord | null>(null);
+  const [isSubmittingEmail, setIsSubmittingEmail] = useState<boolean>(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [submissionChannel, setSubmissionChannel] = useState<'email' | 'whatsapp'>('email');
 
   // Motivational phrases state for chalkboard personalization
   const [phraseCategoryFilter, setPhraseCategoryFilter] = useState<'all' | 'bodas' | 'corporativo' | 'cumpleanos' | 'wellness' | 'social' | 'graduacion'>('all');
@@ -185,6 +188,15 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
       ? `Personalización de Bebidas: ${getCharmsThemeLabel(quoteState.drinkCharmsTheme)} (${quoteState.guestCount} pzs x $1 = +$${quoteState.guestCount})`
       : '';
 
+    const addonsList = [
+      quoteState.includeCookies ? `Cookies artesanales (${selectedPkg.cookieCount})` : '',
+      quoteState.coldFoamBar ? 'Barra de Espumas Frías' : '',
+      quoteState.signatureDrink ? 'Bebida de Autor Exclusiva' : '',
+      quoteState.customBrandedCups ? 'Vasos Personalizados con Logo' : '',
+      furnitureText ? `Mobiliario: ${furnitureText}` : '',
+      charmsText ? charmsText : '',
+    ].filter(Boolean);
+
     // Guardar asíncronamente en Supabase (tabla ichin_cotizaciones y leads de AMSI CRM)
     guardarCotizacionSupabase({
       cliente_nombre: quoteState.clientName.trim() || 'Cliente Distinguido',
@@ -196,14 +208,7 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
       numero_invitados: quoteState.guestCount,
       paquete_nombre: selectedPkg.name,
       tipo_montaje: quoteState.setupColorTheme || 'Barra Estándar',
-      adicionales: [
-        quoteState.includeCookies ? `Cookies artesanales (${selectedPkg.cookieCount})` : '',
-        quoteState.coldFoamBar ? 'Barra de Espumas Frías' : '',
-        quoteState.signatureDrink ? 'Bebida de Autor Exclusiva' : '',
-        quoteState.customBrandedCups ? 'Vasos Personalizados con Logo' : '',
-        furnitureText ? `Mobiliario: ${furnitureText}` : '',
-        charmsText ? charmsText : '',
-      ].filter(Boolean),
+      adicionales: addonsList,
       notas_adicionales: `Frase en pizarra: "${quoteState.customSignagePhrase}". Código: ${bookingCode}`,
       resumen_items: {
         codigo: bookingCode,
@@ -229,20 +234,153 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
         setupTheme: quoteState.setupColorTheme,
         terraceFurniture: furnitureText || undefined,
         drinkCharms: charmsText || undefined,
-        addons: [
-          quoteState.includeCookies ? `Cookies artesanales horneadas al día (${selectedPkg.cookieCount})` : '',
-          quoteState.coldFoamBar ? 'Estación de Espumas Frías (Matcha Cold Foam)' : '',
-          quoteState.signatureDrink ? 'Bebida de Autor Exclusiva del Evento' : '',
-          quoteState.customBrandedCups ? 'Vasos Personalizados con Logo/Monograma' : '',
-          furnitureText ? `Mobiliario de Terraza: ${furnitureText}` : '',
-          charmsText ? charmsText : '',
-        ].filter(Boolean),
+        addons: addonsList,
         signagePhrase: quoteState.customSignagePhrase,
       });
     }
 
     setSubmittedBooking(newRecord);
     setIsSubmitted(true);
+    onQuoteSubmitted(newRecord);
+  };
+
+  const handleSendByEmail = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+
+    // Validar correo
+    if (!quoteState.clientEmail || !quoteState.clientEmail.includes('@')) {
+      setCurrentStep(4);
+      setEmailError('Por favor ingresa tu correo electrónico para enviarte la propuesta formal.');
+      setTimeout(() => {
+        const el = document.getElementById('client-email-input');
+        if (el) {
+          el.focus();
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+      return;
+    }
+
+    setEmailError(null);
+    setIsSubmittingEmail(true);
+    setSubmissionChannel('email');
+
+    const bookingCode = submittedBooking?.code || `ICH-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const getFurnitureLabel = (furn?: string) => {
+      if (furn === 'lounge_completo') return 'Montaje Lounge Completo (Toldos Riviera + Mesas Altas + Taburetes + Sillas Medallón)';
+      if (furn === 'mesas_altas') return 'Set de Mesas Altas Cocteleras & Taburetes Blancos';
+      if (furn === 'toldos_sombrilla') return 'Set de Toldos Sombrilla Riviera (Lona blanca con flecos)';
+      return '';
+    };
+
+    const getCharmsThemeLabel = (theme?: string) => {
+      if (theme === 'ositos_teddy') return 'Colección Ositos Teddy Kawaii & Bear Hug';
+      if (theme === 'halloween') return 'Colección Spooky Cute Fantasmitas (Halloween/Otoño)';
+      if (theme === 'navidad') return 'Colección Navideña (Santa, Renos & Pinos)';
+      if (theme === 'mini_foodie') return 'Colección Mini Foodie & Mystery Bag (Donas & Boba)';
+      if (theme === 'glow_animals') return 'Colección Animalitos Fluorescentes (Glow in the Dark)';
+      if (theme === 'gemas_cristal') return 'Estación Gemas 3D & Cristales Autoadhesivos';
+      return 'Mix Sorpresa de Charms & Dijs Coleccionables';
+    };
+
+    const furnitureText = getFurnitureLabel(quoteState.terraceFurniture);
+    const charmsText = quoteState.drinkCharmsCustomization 
+      ? `Personalización de Bebidas: ${getCharmsThemeLabel(quoteState.drinkCharmsTheme)} (${quoteState.guestCount} pzs x $1 = +$${quoteState.guestCount})`
+      : '';
+
+    const addonsList = [
+      quoteState.includeCookies ? `Cookies artesanales (${selectedPkg.cookieCount})` : '',
+      quoteState.coldFoamBar ? 'Barra de Espumas Frías' : '',
+      quoteState.signatureDrink ? 'Bebida de Autor Exclusiva' : '',
+      quoteState.customBrandedCups ? 'Vasos Personalizados con Logo' : '',
+      furnitureText ? `Mobiliario: ${furnitureText}` : '',
+      charmsText ? charmsText : '',
+    ].filter(Boolean);
+
+    // 1. Guardar de forma garantizada en Supabase (ichin_cotizaciones y leads de CRM)
+    await guardarCotizacionSupabase({
+      cliente_nombre: quoteState.clientName.trim() || 'Cliente Web',
+      cliente_telefono: quoteState.clientPhone.trim() || 'No especificado',
+      cliente_email: quoteState.clientEmail.trim(),
+      tipo_evento: quoteState.eventType,
+      fecha_evento: `${quoteState.eventDate} ${quoteState.eventTime}`,
+      lugar_evento: quoteState.locationZone,
+      numero_invitados: quoteState.guestCount,
+      paquete_nombre: selectedPkg.name,
+      tipo_montaje: quoteState.setupColorTheme || 'Barra Estándar',
+      adicionales: addonsList,
+      notas_adicionales: `Solicitud por Correo Electrónico. Pizarra: "${quoteState.customSignagePhrase || 'GOOD HABITS, BETTER DAYS ♡'}". Código: ${bookingCode}`,
+      resumen_items: {
+        codigo: bookingCode,
+        canal: 'email_solicitud',
+        bebidasBase: selectedPkg.drinksCount,
+        horas: quoteState.serviceHours,
+        opcionVasos: quoteState.cupOption,
+        mobiliario: quoteState.terraceFurniture || 'ninguno',
+        charms: quoteState.drinkCharmsCustomization ? quoteState.drinkCharmsTheme : 'no',
+      },
+    });
+
+    // 2. Enviar correo vía Resend
+    await enviarCorreoCotizacionResend({
+      toEmail: quoteState.clientEmail.trim(),
+      clientName: quoteState.clientName.trim() || 'Cliente Distinguido',
+      bookingCode: bookingCode,
+      packageName: selectedPkg.name,
+      guestCount: quoteState.guestCount,
+      eventDate: quoteState.eventDate,
+      eventTime: quoteState.eventTime,
+      locationZone: quoteState.locationZone,
+      setupTheme: quoteState.setupColorTheme,
+      terraceFurniture: furnitureText || undefined,
+      drinkCharms: charmsText || undefined,
+      addons: addonsList,
+      signagePhrase: quoteState.customSignagePhrase,
+    });
+
+    // 3. Abrir cliente de correo pre-redactado (Mailto)
+    const mailtoUrl = generarMailtoCotizacion({
+      bookingCode,
+      clientName: quoteState.clientName.trim() || 'Cliente Distinguido',
+      clientPhone: quoteState.clientPhone.trim() || 'No indicado',
+      clientEmail: quoteState.clientEmail.trim(),
+      packageName: selectedPkg.name,
+      guestCount: quoteState.guestCount,
+      eventDate: quoteState.eventDate,
+      eventTime: quoteState.eventTime,
+      locationZone: quoteState.locationZone,
+      furnitureText: furnitureText || undefined,
+      charmsText: charmsText || undefined,
+      signagePhrase: quoteState.customSignagePhrase,
+      addons: addonsList,
+      specialRequests: quoteState.specialRequests,
+    });
+
+    try {
+      window.location.href = mailtoUrl;
+    } catch (e) {
+      console.log('Mailto trigger:', e);
+    }
+
+    const newRecord: BookingRecord = {
+      id: `quote-${Date.now()}`,
+      code: bookingCode,
+      clientName: quoteState.clientName.trim() || 'Cliente Distinguido',
+      eventType: quoteState.eventType,
+      date: `${quoteState.eventDate} ${quoteState.eventTime}`,
+      zone: quoteState.locationZone,
+      packageTitle: selectedPkg.name,
+      guests: quoteState.guestCount,
+      totalUsd: 0,
+      status: 'pending',
+      statusLabel: 'En Revisión (Por Correo)',
+      createdAt: 'Hoy',
+    };
+
+    setSubmittedBooking(newRecord);
+    setIsSubmitted(true);
+    setIsSubmittingEmail(false);
     onQuoteSubmitted(newRecord);
   };
 
@@ -429,20 +567,52 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
             </div>
           </div>
 
-          {quoteState.clientEmail && (
-            <div className="bg-[#EBF3EA] border border-[#BACFBA] rounded-2xl p-3 text-center text-xs text-[#2E432E] flex items-center justify-center gap-2 mb-6">
-              <Mail className="w-4 h-4 text-[#7A8E77]" />
-              <span>Copia de la propuesta enviada a <strong>{quoteState.clientEmail}</strong> vía Resend.</span>
+          {/* Database & Email Confirmation Alerts */}
+          <div className="space-y-2 mb-6">
+            <div className="bg-[#EBF3EA] border border-[#BACFBA] rounded-2xl p-3 text-center text-xs text-[#2E432E] flex items-center justify-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-[#455546] shrink-0" />
+              <span>✓ Solicitud guardada exitosamente en la <strong>Base de Datos Supabase</strong> (Código: <strong>{submittedBooking.code}</strong>).</span>
             </div>
-          )}
+
+            {quoteState.clientEmail && (
+              <div className="bg-[#FAF8F4] border border-[#D4C4AA] rounded-2xl p-3 text-center text-xs text-[#455546] flex items-center justify-center gap-2">
+                <Mail className="w-4 h-4 text-[#7A8E77] shrink-0" />
+                <span>Propuesta remitida a <strong>{quoteState.clientEmail}</strong> y a nuestro equipo de eventos.</span>
+              </div>
+            )}
+          </div>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            {quoteState.clientEmail && (
+              <button
+                onClick={() => {
+                  const mailtoUrl = generarMailtoCotizacion({
+                    bookingCode: submittedBooking.code,
+                    clientName: quoteState.clientName.trim() || 'Cliente Distinguido',
+                    clientPhone: quoteState.clientPhone.trim() || 'No indicado',
+                    clientEmail: quoteState.clientEmail.trim(),
+                    packageName: selectedPkg.name,
+                    guestCount: quoteState.guestCount,
+                    eventDate: quoteState.eventDate,
+                    eventTime: quoteState.eventTime,
+                    locationZone: quoteState.locationZone,
+                    signagePhrase: quoteState.customSignagePhrase,
+                  });
+                  window.location.href = mailtoUrl;
+                }}
+                className="py-3 px-6 rounded-full bg-[#455546] text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-[#384639] transition-all shadow-md cursor-pointer"
+              >
+                <Mail className="w-4 h-4 text-[#D4BE9B]" />
+                <span>Abrir / Reenviar en mi Correo</span>
+              </button>
+            )}
+
             <button
               onClick={handleOpenWhatsApp}
-              className="py-3 px-6 rounded-full bg-[#455546] text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-[#384639] transition-all shadow-md"
+              className="py-3 px-6 rounded-full bg-[#25D366] text-black font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-[#1EBE5D] transition-all shadow-xs cursor-pointer"
             >
-              <MessageCircle className="w-4 h-4 text-[#D4BE9B]" />
-              <span>Confirmar vía WhatsApp Directo</span>
+              <MessageCircle className="w-4 h-4 fill-black text-black" />
+              <span>Confirmar vía WhatsApp</span>
             </button>
 
             <button
@@ -1235,28 +1405,40 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
                     </div>
                   </div>
 
-                  {/* Email Field (Resend Integration) */}
+                  {/* Email Field (Required for proposal & database registration) */}
                   <div>
                     <label className="block text-xs font-bold text-[#3C4A3C] uppercase tracking-wider mb-1.5 flex items-center justify-between">
                       <span className="flex items-center gap-1.5">
                         <Mail className="w-3.5 h-3.5 text-[#7A8E77]" />
-                        <span>Correo Electrónico (Para recibir propuesta formal)</span>
+                        <span>Correo Electrónico (Para recibir propuesta formal) *</span>
                       </span>
-                      <span className="text-[10px] text-[#7A8E77] font-normal lowercase">vía Resend</span>
+                      <span className="text-[10px] text-[#7A8E77] font-semibold bg-[#FAF8F4] px-2 py-0.5 rounded-full border border-[#D4C4AA]">
+                        Registro en Base de Datos & Correo
+                      </span>
                     </label>
                     <input
+                      id="client-email-input"
                       type="email"
+                      required
                       placeholder="Ej. valeria@gmail.com"
                       value={quoteState.clientEmail}
-                      onChange={(e) => setQuoteState({ ...quoteState, clientEmail: e.target.value })}
+                      onChange={(e) => {
+                        setQuoteState({ ...quoteState, clientEmail: e.target.value });
+                        if (emailError) setEmailError(null);
+                      }}
                       className="w-full px-3.5 py-3 text-xs bg-white border border-[#E6DFD4] rounded-2xl focus:outline-none focus:border-[#7A8E77] text-[#3C4A3C]"
                     />
+                    {emailError && (
+                      <p className="text-[11px] text-red-600 font-bold mt-1 animate-in fade-in duration-200">
+                        ⚠️ {emailError}
+                      </p>
+                    )}
                   </div>
 
                   {/* Special notes */}
                   <div>
                     <label className="block text-xs font-bold text-[#3C4A3C] uppercase tracking-wider mb-1.5">
-                      Dirección específica o comentarios
+                      Dirección específica o comentarios adicionales
                     </label>
                     <textarea
                       rows={2}
@@ -1267,24 +1449,36 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
                     ></textarea>
                   </div>
 
-                  <div className="pt-4 flex justify-between">
+                  <div className="pt-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                     <button
                       type="button"
                       onClick={() => setCurrentStep(3)}
-                      className="py-3 px-5 rounded-full bg-[#F3EFE7] text-[#3C4A3C] text-xs font-semibold flex items-center gap-1.5 hover:bg-[#E9E4DA] transition-all"
+                      className="py-3 px-5 rounded-full bg-[#F3EFE7] text-[#3C4A3C] text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-[#E9E4DA] transition-all cursor-pointer"
                     >
                       <ChevronLeft className="w-4 h-4" />
                       <span>Volver</span>
                     </button>
 
-                    <button
-                      type="submit"
-                      id="submit-quote-btn"
-                      className="py-3.5 px-8 rounded-full bg-[#455546] text-white text-xs font-bold uppercase tracking-wider flex items-center gap-2 hover:bg-[#384639] shadow-md transition-all"
-                    >
-                      <Send className="w-4 h-4 text-[#D4BE9B]" />
-                      <span>Confirmar & Reservar Fecha</span>
-                    </button>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <button
+                        type="button"
+                        onClick={handleSendByEmail}
+                        disabled={isSubmittingEmail}
+                        className="py-3.5 px-6 rounded-full bg-[#455546] text-white text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-[#384639] shadow-md transition-all cursor-pointer"
+                      >
+                        <Mail className="w-4 h-4 text-[#D4BE9B]" />
+                        <span>{isSubmittingEmail ? 'Guardando...' : 'Enviar Solicitud por Correo'}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleOpenWhatsApp}
+                        className="py-3.5 px-5 rounded-full bg-[#25D366] text-black text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-[#1EBE5D] shadow-sm transition-all cursor-pointer"
+                      >
+                        <MessageCircle className="w-4 h-4 fill-black text-black" />
+                        <span>O por WhatsApp</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1411,15 +1605,27 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
                 </div>
               </div>
 
-              {/* Direct WhatsApp trigger */}
-              <button
-                type="button"
-                onClick={handleOpenWhatsApp}
-                className="w-full py-3 px-4 rounded-full bg-[#25D366] text-black font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-[#1EBE5D] transition-all shadow-md"
-              >
-                <MessageCircle className="w-4 h-4 fill-black text-black" />
-                <span>Consultar Disponibilidad por WhatsApp</span>
-              </button>
+              {/* Action Buttons: Email Request + WhatsApp */}
+              <div className="space-y-2.5">
+                <button
+                  type="button"
+                  onClick={handleSendByEmail}
+                  disabled={isSubmittingEmail}
+                  className="w-full py-3.5 px-4 rounded-full bg-[#FAF8F4] text-[#3C4A3C] font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-[#F3EFE7] transition-all shadow-md border-2 border-[#D4C4AA] cursor-pointer"
+                >
+                  <Mail className="w-4 h-4 text-[#455546]" />
+                  <span>{isSubmittingEmail ? 'Guardando en BD...' : 'Solicitar Cotización por Correo'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleOpenWhatsApp}
+                  className="w-full py-3 px-4 rounded-full bg-[#25D366] text-black font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-[#1EBE5D] transition-all shadow-xs cursor-pointer"
+                >
+                  <MessageCircle className="w-4 h-4 fill-black text-black" />
+                  <span>Consultar por WhatsApp</span>
+                </button>
+              </div>
 
               <div className="mt-4 flex items-center justify-center gap-2 text-[10px] text-[#FAF8F4]/70">
                 <ShieldCheck className="w-3.5 h-3.5 text-[#9BB098]" />

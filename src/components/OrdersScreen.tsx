@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BookingRecord, CartOrderItem } from '../types';
-import { Clock, Calendar, MapPin, CheckCircle2, ChevronRight, QrCode, FileText, Sparkles, MessageCircle, RefreshCw, Database } from 'lucide-react';
+import { Clock, Calendar, MapPin, CheckCircle2, ChevronRight, QrCode, FileText, Sparkles, MessageCircle, RefreshCw, Database, Mail, Phone } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface OrdersScreenProps {
@@ -30,6 +30,8 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
           id: item.id,
           code: item.resumen_items?.codigo || `ICH-${item.id.slice(0, 4).toUpperCase()}`,
           clientName: item.cliente_nombre || 'Cliente',
+          clientEmail: item.cliente_email || undefined,
+          clientPhone: item.cliente_telefono || undefined,
           eventType: item.tipo_evento || 'Evento',
           date: item.fecha_evento || 'Por definir',
           zone: item.lugar_evento || 'Caracas',
@@ -159,6 +161,12 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
                     </div>
                     <h3 className="font-bold text-base text-[#3C4A3C]">{b.clientName}</h3>
                     <p className="text-xs text-gray-500">{b.eventType}</p>
+                    {b.clientEmail && (
+                      <div className="flex items-center gap-1.5 mt-1 text-[11px] text-[#455546]">
+                        <Mail className="w-3 h-3 text-[#7A8E77]" />
+                        <span className="truncate">{b.clientEmail}</span>
+                      </div>
+                    )}
                   </div>
                   <div>{getStatusBadge(b.status)}</div>
                 </div>
@@ -254,6 +262,31 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
                     <span className="text-gray-500">Titular del Evento:</span>
                     <span className="font-bold text-[#3C4A3C]">{currentSelected.clientName}</span>
                   </div>
+
+                  {currentSelected.clientEmail && (
+                    <div className="flex justify-between items-center bg-[#FAF8F4] px-2.5 py-1.5 rounded-xl border border-[#E6DFD4]">
+                      <span className="text-gray-500 flex items-center gap-1 text-[11px]">
+                        <Mail className="w-3 h-3 text-[#7A8E77]" /> Correo:
+                      </span>
+                      <a
+                        href={`mailto:${currentSelected.clientEmail}?subject=${encodeURIComponent(`Cotización ICHIN By AMSI - Reserva ${currentSelected.code}`)}`}
+                        className="font-bold text-[#455546] hover:underline text-[11px] truncate max-w-[200px]"
+                        title="Responder por correo al cliente"
+                      >
+                        {currentSelected.clientEmail}
+                      </a>
+                    </div>
+                  )}
+
+                  {currentSelected.clientPhone && (
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-gray-500 flex items-center gap-1">
+                        <Phone className="w-3 h-3 text-[#7A8E77]" /> Teléfono:
+                      </span>
+                      <span className="font-semibold text-[#3C4A3C]">{currentSelected.clientPhone}</span>
+                    </div>
+                  )}
+
                   <div className="flex justify-between">
                     <span className="text-gray-500">Tipo de Celebración:</span>
                     <span className="font-bold text-[#3C4A3C]">{currentSelected.eventType}</span>
@@ -276,6 +309,14 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
                   </div>
                 </div>
 
+                {/* Database Retention Stamp */}
+                <div className="flex items-center gap-2 bg-[#455546]/10 px-3 py-2 rounded-xl border border-[#455546]/20 text-[11px] text-[#3C4A3C]">
+                  <Database className="w-3.5 h-3.5 text-[#7A8E77] shrink-0" />
+                  <span>
+                    Guardado en Base de Datos Supabase (tabla <strong className="font-mono text-[10px]">ichin_cotizaciones</strong>)
+                  </span>
+                </div>
+
                 {/* Milestone Tracker */}
                 <div className="pt-3 border-t border-[#F3EFE7]">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-[#75786E] block mb-2">
@@ -296,6 +337,17 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
                     </div>
                   </div>
                 </div>
+
+                {/* Email Reply Action if email present */}
+                {currentSelected.clientEmail && (
+                  <a
+                    href={`mailto:${currentSelected.clientEmail}?subject=${encodeURIComponent(`Respuesta a tu Solicitud de Reserva ${currentSelected.code} - ICHIN By AMSI`)}&body=${encodeURIComponent(`Estimado/a ${currentSelected.clientName},\n\n¡Gracias por contactar a ICHIN By AMSI Ceremonial Matcha Bar!\n\nHemos recibido y registrado en nuestra base de datos los detalles de tu solicitud de evento con código ${currentSelected.code} (${currentSelected.packageTitle}) para el ${currentSelected.date} en ${currentSelected.zone}.\n\nQuedamos a tu entera disposición para enviarte la propuesta formal detallada y coordinar la visita técnica de nuestro Carrito Móvil.\n\nAtentamente,\nEquipo ICHIN By AMSI\nCaracas, Venezuela`)}`}
+                    className="w-full py-2.5 px-4 rounded-xl bg-[#455546] text-white hover:bg-[#384639] transition-all text-xs font-bold flex items-center justify-center gap-2 shadow-xs"
+                  >
+                    <Mail className="w-3.5 h-3.5 text-[#D4BE9B]" />
+                    <span>✉️ Responder al Cliente por Correo</span>
+                  </a>
+                )}
 
                 {/* Simulated QR Code */}
                 <div className="bg-[#FAF8F4] p-4 rounded-2xl border border-[#E6DFD4] flex items-center justify-between mt-4">

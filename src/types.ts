@@ -78,6 +78,8 @@ export interface BookingRecord {
   id: string;
   code: string;
   clientName: string;
+  clientEmail?: string;
+  clientPhone?: string;
   eventType: string;
   date: string;
   zone: string;
@@ -88,3 +90,4 @@ export interface BookingRecord {
   statusLabel: string;
   createdAt: string;
 }
+
