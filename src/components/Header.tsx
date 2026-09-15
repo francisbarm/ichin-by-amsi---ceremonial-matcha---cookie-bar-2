@@ -21,7 +21,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenQr,
   onOpenAuth,
 }) => {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut, isAdmin } = useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
@@ -173,10 +173,17 @@ export const Header: React.FC<HeaderProps> = ({
                 {isUserMenuOpen && (
                   <div className="absolute right-0 mt-2 w-56 bg-[#FAF8F4] rounded-2xl border border-[#E6DFD4] shadow-xl py-2 z-50 animate-fadeIn">
                     <div className="px-4 py-2 border-b border-[#E6DFD4]/70">
-                      <p className="text-xs font-bold text-[#3C4A3C] truncate">
-                        {profile?.fullName || 'Anfitrión'}
-                      </p>
-                      <p className="text-[11px] text-[#7A8E77] truncate">
+                      <div className="flex items-center justify-between gap-1">
+                        <p className="text-xs font-bold text-[#3C4A3C] truncate">
+                          {profile?.fullName || 'Anfitrión'}
+                        </p>
+                        {isAdmin && (
+                          <span className="text-[9px] bg-[#B69C76] text-white px-1.5 py-0.5 rounded-full font-black uppercase">
+                            Admin
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-[#7A8E77] truncate mt-0.5">
                         {user.email}
                       </p>
                     </div>

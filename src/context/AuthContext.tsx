@@ -7,12 +7,14 @@ export interface UserProfile {
   email: string;
   fullName: string;
   phone: string;
+  role: 'admin' | 'cliente';
 }
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   profile: UserProfile | null;
+  isAdmin: boolean;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signUp: (params: {
@@ -20,6 +22,7 @@ interface AuthContextType {
     password: string;
     fullName: string;
     phone?: string;
+    role?: 'admin' | 'cliente';
   }) => Promise<{ error: AuthError | null; needsEmailConfirmation?: boolean }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
@@ -32,7 +35,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Derivar perfil legible de los metadatos del usuario
+  const adminEmail = (import.meta.env.VITE_ADMIN_EMAIL || 'eventos.ichin@gmail.com').toLowerCase();
+  
+  // Identificación del Rol de Usuario (Administrador vs Cliente)
+  const isUserAdmin = Boolean(
+    user && (
+      user.user_metadata?.role === 'admin' ||
+      user.email?.toLowerCase() === adminEmail
+    )
+  );
+
+  // Derivar perfil legible con rol asignado automáticamente
   const profile: UserProfile | null = user
     ? {
         id: user.id,
@@ -43,6 +56,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           user.email?.split('@')[0] ||
           'Anfitrión',
         phone: user.user_metadata?.phone || '',
+        role: isUserAdmin ? 'admin' : (user.user_metadata?.role || 'cliente'),
       }
     : null;
 
@@ -79,12 +93,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     password,
     fullName,
     phone,
+    role = 'cliente',
   }: {
     email: string;
     password: string;
     fullName: string;
     phone?: string;
+    role?: 'admin' | 'cliente';
   }) => {
+    // Si el correo coincide con el admin configurado, asignar admin automáticamente
+    const effectiveRole = email.toLowerCase() === adminEmail ? 'admin' : role;
+
     const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
@@ -92,6 +111,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         data: {
           full_name: fullName.trim(),
           phone: phone ? phone.trim() : '',
+          role: effectiveRole,
         },
       },
     });
@@ -121,6 +141,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user,
         session,
         profile,
+        isAdmin: isUserAdmin,
         loading,
         signIn,
         signUp,

@@ -15,10 +15,42 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
   activeOrders,
   onNewQuoteClick,
 }) => {
-  const { user, profile } = useAuth();
+  const { user, profile, isAdmin } = useAuth();
   const [supabaseBookings, setSupabaseBookings] = useState<BookingRecord[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [filterOnlyMine, setFilterOnlyMine] = useState<boolean>(false);
+
+  const handleUpdateBookingStatus = async (bookingId: string, newStatus: 'pending' | 'in_prep' | 'confirmed') => {
+    if (!isAdmin) return;
+    const dbStatus = newStatus === 'confirmed' ? 'confirmado' : newStatus === 'in_prep' ? 'en_prep' : 'nuevo';
+    try {
+      await supabase.from('ichin_cotizaciones').update({ estado: dbStatus }).eq('id', bookingId);
+      setSupabaseBookings((prev) =>
+        prev.map((b) =>
+          b.id === bookingId
+            ? {
+                ...b,
+                status: newStatus,
+                statusLabel: newStatus === 'confirmed' ? 'Confirmado' : newStatus === 'in_prep' ? 'En Preparación' : 'En Revisión',
+              }
+            : b
+        )
+      );
+      if (selectedBooking?.id === bookingId) {
+        setSelectedBooking((prev) =>
+          prev
+            ? {
+                ...prev,
+                status: newStatus,
+                statusLabel: newStatus === 'confirmed' ? 'Confirmado' : newStatus === 'in_prep' ? 'En Preparación' : 'En Revisión',
+              }
+            : null
+        );
+      }
+    } catch (err) {
+      console.error('Error al actualizar estado en Supabase:', err);
+    }
+  };
 
   const fetchSupabaseBookings = async () => {
     try {
@@ -321,7 +353,22 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
                   </div>
                   <div>
                     <span className="text-[10px] text-gray-400 uppercase font-bold">Estado</span>
-                    <div>{getStatusBadge(currentSelected.status)}</div>
+                    {isAdmin ? (
+                      <div className="mt-1 flex items-center gap-1.5">
+                        <select
+                          value={currentSelected.status}
+                          onChange={(e) => handleUpdateBookingStatus(currentSelected.id, e.target.value as any)}
+                          className="text-xs font-bold bg-[#FAF8F4] border border-[#7A8E77] rounded-xl px-2 py-1 text-[#3C4A3C] focus:outline-none focus:ring-1 focus:ring-[#7A8E77] cursor-pointer shadow-2xs"
+                          title="Cambiar estado como Administrador"
+                        >
+                          <option value="pending">En Revisión</option>
+                          <option value="in_prep">En Preparación</option>
+                          <option value="confirmed">Confirmado</option>
+                        </select>
+                      </div>
+                    ) : (
+                      <div>{getStatusBadge(currentSelected.status)}</div>
+                    )}
                   </div>
                 </div>
 
