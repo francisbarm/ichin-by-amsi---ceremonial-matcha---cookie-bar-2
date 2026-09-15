@@ -13,9 +13,19 @@ import { CartShowcaseScreen } from './components/CartShowcaseScreen';
 import { OrdersScreen } from './components/OrdersScreen';
 import { CartDrawer } from './components/CartDrawer';
 import { MobileQrModal } from './components/MobileQrModal';
+import { AuthModal } from './components/AuthModal';
 import { Footer } from './components/Footer';
+import { AuthProvider } from './context/AuthContext';
 
 export default function App() {
+  return (
+    <AuthProvider>
+      <MainApp />
+    </AuthProvider>
+  );
+}
+
+function MainApp() {
   const [currentScreen, setCurrentScreen] = useState<ScreenType>(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -30,6 +40,7 @@ export default function App() {
   const [cartItems, setCartItems] = useState<CartOrderItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
   const [isQrModalOpen, setIsQrModalOpen] = useState<boolean>(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [bookings, setBookings] = useState<BookingRecord[]>(INITIAL_BOOKINGS);
   const [initialQuoteParams, setInitialQuoteParams] = useState<{
     packageId?: string;
@@ -108,6 +119,7 @@ export default function App() {
         cartCount={totalCartCount}
         onOpenCart={() => setIsCartOpen(true)}
         onOpenQr={() => setIsQrModalOpen(true)}
+        onOpenAuth={() => setIsAuthModalOpen(true)}
       />
 
       {/* Main Screen Body */}
@@ -167,6 +179,12 @@ export default function App() {
       <MobileQrModal
         isOpen={isQrModalOpen}
         onClose={() => setIsQrModalOpen(false)}
+      />
+
+      {/* Supabase Authentication Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
       />
 
       {/* Footer */}

@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CartOrderItem } from '../types';
-import { X, Trash2, Plus, Minus, ShoppingBag, Send, Calendar, Sparkles, MapPin, Mail, MessageCircle, CheckCircle2 } from 'lucide-react';
+import { X, Trash2, Plus, Minus, ShoppingBag, Send, Calendar, Sparkles, MapPin, Mail, MessageCircle, CheckCircle2, User as UserIcon } from 'lucide-react';
 import { CARACAS_ZONES } from '../data/eventPackages';
 import { guardarPedidoCarritoSupabase } from '../lib/supabase';
 import { generarMailtoPedidoCarrito } from '../services/resendService';
+import { useAuth } from '../context/AuthContext';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -22,7 +23,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   onRemoveItem,
   onClearCart,
 }) => {
-  if (!isOpen) return null;
+  const { user, profile } = useAuth();
 
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
@@ -33,6 +34,17 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const [tipPercentage, setTipPercentage] = useState<number>(0);
   const [emailSentSuccess, setEmailSentSuccess] = useState(false);
   const [cartEmailError, setCartEmailError] = useState<string | null>(null);
+
+  // Pre-fill user data if logged in
+  useEffect(() => {
+    if (profile) {
+      if (!customerName) setCustomerName(profile.fullName);
+      if (!customerEmail) setCustomerEmail(profile.email);
+      if (!customerPhone && profile.phone) setCustomerPhone(profile.phone);
+    }
+  }, [profile]);
+
+  if (!isOpen) return null;
 
   const subtotal = items.reduce((sum, item) => sum + item.subtotal, 0);
   const tipAmount = (subtotal * tipPercentage) / 100;

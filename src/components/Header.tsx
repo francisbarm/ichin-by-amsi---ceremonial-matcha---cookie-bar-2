@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ScreenType } from '../types';
 import { Logo } from './Logo';
-import { ShoppingBag, Calendar, Coffee, Sparkles, Clock, QrCode } from 'lucide-react';
+import { ShoppingBag, Calendar, Coffee, Sparkles, Clock, QrCode, User as UserIcon, LogOut, ChevronDown } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 interface HeaderProps {
   currentScreen: ScreenType;
@@ -9,6 +10,7 @@ interface HeaderProps {
   cartCount: number;
   onOpenCart: () => void;
   onOpenQr?: () => void;
+  onOpenAuth: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -17,7 +19,23 @@ export const Header: React.FC<HeaderProps> = ({
   cartCount,
   onOpenCart,
   onOpenQr,
+  onOpenAuth,
 }) => {
+  const { user, profile, signOut } = useAuth();
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return (
     <header 
       id="main-app-header"
@@ -122,7 +140,7 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 id="header-open-qr-btn"
                 onClick={onOpenQr}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-white border border-[#E6DFD4] text-[#455546] hover:bg-[#FAF8F4] transition-all text-xs font-bold shadow-xs active:scale-95"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-full bg-white border border-[#E6DFD4] text-[#455546] hover:bg-[#FAF8F4] transition-all text-xs font-bold shadow-xs active:scale-95"
                 title="Ver en tu Celular (0414-3260003)"
               >
                 <QrCode className="w-4 h-4 text-[#7A8E77]" />
@@ -130,6 +148,87 @@ export const Header: React.FC<HeaderProps> = ({
                 <span className="text-[9px] bg-[#B69C76] text-white px-1.5 py-0.5 rounded-full font-black">
                   QR
                 </span>
+              </button>
+            )}
+
+            {/* User Authentication Menu / Button */}
+            {user ? (
+              <div className="relative" ref={userMenuRef}>
+                <button
+                  id="user-profile-menu-btn"
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  className="flex items-center gap-2 py-1.5 px-3 rounded-full bg-[#EAE5D9] hover:bg-[#E0D9CB] border border-[#E6DFD4] text-[#3C4A3C] transition-all active:scale-95 shadow-2xs"
+                  aria-label="Menú de usuario"
+                >
+                  <div className="w-7 h-7 rounded-full bg-[#455546] text-[#FAF8F4] text-xs font-bold flex items-center justify-center shadow-xs">
+                    {(profile?.fullName || user.email || 'U').charAt(0).toUpperCase()}
+                  </div>
+                  <span className="text-xs font-bold hidden sm:inline max-w-[100px] truncate">
+                    {profile?.fullName?.split(' ')[0] || 'Anfitrión'}
+                  </span>
+                  <ChevronDown className={`w-3.5 h-3.5 text-[#7A8E77] transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {/* Dropdown Menu */}
+                {isUserMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-56 bg-[#FAF8F4] rounded-2xl border border-[#E6DFD4] shadow-xl py-2 z-50 animate-fadeIn">
+                    <div className="px-4 py-2 border-b border-[#E6DFD4]/70">
+                      <p className="text-xs font-bold text-[#3C4A3C] truncate">
+                        {profile?.fullName || 'Anfitrión'}
+                      </p>
+                      <p className="text-[11px] text-[#7A8E77] truncate">
+                        {user.email}
+                      </p>
+                    </div>
+
+                    <div className="py-1">
+                      <button
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          onNavigate('orders');
+                        }}
+                        className="w-full px-4 py-2 text-left text-xs font-semibold text-[#4A5A4B] hover:bg-[#EAE5D9] flex items-center gap-2.5 transition-colors"
+                      >
+                        <Clock className="w-3.5 h-3.5 text-[#7A8E77]" />
+                        <span>Mis Reservas & Eventos</span>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          onNavigate('quoter');
+                        }}
+                        className="w-full px-4 py-2 text-left text-xs font-semibold text-[#4A5A4B] hover:bg-[#EAE5D9] flex items-center gap-2.5 transition-colors"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-[#B69C76]" />
+                        <span>Nueva Cotización VIP</span>
+                      </button>
+                    </div>
+
+                    <div className="border-t border-[#E6DFD4]/70 pt-1">
+                      <button
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          signOut();
+                        }}
+                        className="w-full px-4 py-2 text-left text-xs font-bold text-red-600 hover:bg-red-50 flex items-center gap-2.5 transition-colors"
+                      >
+                        <LogOut className="w-3.5 h-3.5 text-red-500" />
+                        <span>Cerrar Sesión</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button
+                id="header-login-btn"
+                onClick={onOpenAuth}
+                className="flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-full bg-white border border-[#E6DFD4] text-[#455546] hover:bg-[#FAF8F4] hover:border-[#7A8E77] transition-all text-xs font-bold shadow-2xs active:scale-95"
+              >
+                <UserIcon className="w-3.5 h-3.5 text-[#7A8E77]" />
+                <span className="hidden sm:inline">Iniciar Sesión</span>
+                <span className="sm:hidden">Entrar</span>
               </button>
             )}
 
@@ -159,7 +258,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             id="mobile-nav-menu"
             onClick={() => onNavigate('menu')}
-            className={`flex-1 min-w-[75px] py-1.5 px-2 rounded-full text-center text-[11px] font-bold whitespace-nowrap transition-all ${
+            className={`flex-1 min-w-[70px] py-1.5 px-2 rounded-full text-center text-[11px] font-bold whitespace-nowrap transition-all ${
               currentScreen === 'menu'
                 ? 'bg-[#455546] text-white'
                 : 'text-[#4A5A4B] bg-[#F3EFE7]'
@@ -170,18 +269,18 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             id="mobile-nav-quoter"
             onClick={() => onNavigate('quoter')}
-            className={`flex-1 min-w-[95px] py-1.5 px-2 rounded-full text-center text-[11px] font-bold whitespace-nowrap transition-all ${
+            className={`flex-1 min-w-[90px] py-1.5 px-2 rounded-full text-center text-[11px] font-bold whitespace-nowrap transition-all ${
               currentScreen === 'quoter'
                 ? 'bg-[#455546] text-white'
                 : 'text-[#4A5A4B] bg-[#F3EFE7]'
             }`}
           >
-            Cotizar Evento
+            Cotizar
           </button>
           <button
             id="mobile-nav-cart"
             onClick={() => onNavigate('cart-showcase')}
-            className={`flex-1 min-w-[85px] py-1.5 px-2 rounded-full text-center text-[11px] font-bold whitespace-nowrap transition-all ${
+            className={`flex-1 min-w-[80px] py-1.5 px-2 rounded-full text-center text-[11px] font-bold whitespace-nowrap transition-all ${
               currentScreen === 'cart-showcase'
                 ? 'bg-[#455546] text-white'
                 : 'text-[#4A5A4B] bg-[#F3EFE7]'
@@ -192,7 +291,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             id="mobile-nav-orders"
             onClick={() => onNavigate('orders')}
-            className={`flex-1 min-w-[85px] py-1.5 px-2 rounded-full text-center text-[11px] font-bold whitespace-nowrap transition-all ${
+            className={`flex-1 min-w-[80px] py-1.5 px-2 rounded-full text-center text-[11px] font-bold whitespace-nowrap transition-all ${
               currentScreen === 'orders'
                 ? 'bg-[#455546] text-white'
                 : 'text-[#4A5A4B] bg-[#F3EFE7]'

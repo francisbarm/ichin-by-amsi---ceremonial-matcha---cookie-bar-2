@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { BookingRecord, CartOrderItem } from '../types';
-import { Clock, Calendar, MapPin, CheckCircle2, ChevronRight, QrCode, FileText, Sparkles, MessageCircle, RefreshCw, Database, Mail, Phone } from 'lucide-react';
+import { Clock, Calendar, MapPin, CheckCircle2, ChevronRight, QrCode, FileText, Sparkles, MessageCircle, RefreshCw, Database, Mail, Phone, User as UserIcon, Filter } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
 
 interface OrdersScreenProps {
   bookings: BookingRecord[];
@@ -14,8 +15,10 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
   activeOrders,
   onNewQuoteClick,
 }) => {
+  const { user, profile } = useAuth();
   const [supabaseBookings, setSupabaseBookings] = useState<BookingRecord[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [filterOnlyMine, setFilterOnlyMine] = useState<boolean>(false);
 
   const fetchSupabaseBookings = async () => {
     try {
@@ -55,7 +58,14 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
     fetchSupabaseBookings();
   }, []);
 
-  const displayBookings = supabaseBookings.length > 0 ? supabaseBookings : bookings;
+  const allBookings = supabaseBookings.length > 0 ? supabaseBookings : bookings;
+  const userBookings = user
+    ? allBookings.filter(
+        (b) => b.clientEmail && b.clientEmail.toLowerCase() === user.email?.toLowerCase()
+      )
+    : [];
+  const displayBookings = filterOnlyMine && user ? userBookings : allBookings;
+
   const [selectedBooking, setSelectedBooking] = useState<BookingRecord | null>(null);
   const currentSelected = selectedBooking || displayBookings[0] || null;
 
@@ -128,7 +138,7 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
         
         {/* Bookings List (7 Cols) */}
         <div className="lg:col-span-7 space-y-4">
-          <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#75786E] px-1">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-bold uppercase tracking-wider text-[#75786E] px-1">
             <span>Eventos Registrados en Caracas ({displayBookings.length})</span>
             {supabaseBookings.length > 0 && (
               <span className="text-[10px] text-[#7A8E77] font-bold lowercase flex items-center gap-1">
@@ -137,6 +147,64 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
               </span>
             )}
           </div>
+
+          {/* User Filter Tabs (if authenticated) */}
+          {user && (
+            <div className="flex items-center gap-2 bg-[#EAE5D9]/70 p-1 rounded-2xl border border-[#E6DFD4]">
+              <button
+                type="button"
+                onClick={() => setFilterOnlyMine(false)}
+                className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition-all ${
+                  !filterOnlyMine
+                    ? 'bg-[#455546] text-white shadow-2xs'
+                    : 'text-[#4A5A4B] hover:text-[#3C4A3C]'
+                }`}
+              >
+                Todas las Reservas ({allBookings.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterOnlyMine(true)}
+                className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  filterOnlyMine
+                    ? 'bg-[#455546] text-white shadow-2xs'
+                    : 'text-[#4A5A4B] hover:text-[#3C4A3C]'
+                }`}
+              >
+                <UserIcon className="w-3.5 h-3.5 text-[#B69C76]" />
+                <span>Mis Reservas ({userBookings.length})</span>
+              </button>
+            </div>
+          )}
+
+          {/* Empty state if filtered user has no bookings */}
+          {displayBookings.length === 0 && (
+            <div className="p-8 text-center bg-white rounded-3xl border border-[#E6DFD4] space-y-3">
+              <div className="w-12 h-12 rounded-full bg-[#FAF8F4] border border-[#E6DFD4] flex items-center justify-center mx-auto text-[#7A8E77]">
+                <Calendar className="w-6 h-6" />
+              </div>
+              <h3 className="font-bold text-sm text-[#3C4A3C]">No se encontraron reservas con tu correo</h3>
+              <p className="text-xs text-[#6A7869] max-w-sm mx-auto">
+                No tienes solicitudes registradas bajo <strong>{user?.email}</strong>. Puedes cotizar un evento en 2 minutos para verlo aquí.
+              </p>
+              <div className="flex justify-center gap-2 pt-2">
+                {filterOnlyMine && (
+                  <button
+                    onClick={() => setFilterOnlyMine(false)}
+                    className="py-2 px-4 rounded-full border border-[#E6DFD4] text-xs font-bold text-[#3C4A3C] hover:bg-[#FAF8F4]"
+                  >
+                    Ver Todo el Historial
+                  </button>
+                )}
+                <button
+                  onClick={onNewQuoteClick}
+                  className="py-2 px-4 rounded-full bg-[#455546] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#384639]"
+                >
+                  Cotizar Ahora
+                </button>
+              </div>
+            </div>
+          )}
 
           {displayBookings.map((b) => {
             const isSelected = currentSelected?.id === b.id;

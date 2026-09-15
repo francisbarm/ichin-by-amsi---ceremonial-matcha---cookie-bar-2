@@ -1,15 +1,16 @@
-import React, { useState, useId } from 'react';
+import React, { useState, useId, useEffect } from 'react';
 import { EventQuoteState, EventPackage, BookingRecord } from '../types';
 import { EVENT_PACKAGES, CARACAS_ZONES } from '../data/eventPackages';
 import { 
   Sparkles, Check, Users, Clock, MapPin, Calendar, 
   Send, ChevronRight, ChevronLeft, ShieldCheck, 
   Coffee, Award, Heart, MessageCircle, Mail,
-  Printer, ChevronDown, ChevronUp, HelpCircle, CheckCircle2
+  Printer, ChevronDown, ChevronUp, HelpCircle, CheckCircle2, User as UserIcon
 } from 'lucide-react';
 import { guardarCotizacionSupabase } from '../lib/supabase';
 import { enviarCorreoCotizacionResend, generarMailtoCotizacion } from '../services/resendService';
 import { enviarCotizacionWhatsApp } from '../services/whatsappService';
+import { useAuth } from '../context/AuthContext';
 import { 
   MOTIVATIONAL_PHRASES, 
   PHRASE_CATEGORIES, 
@@ -77,6 +78,20 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
       }));
     }
   }, [initialQuoteParams]);
+
+  const { user, profile } = useAuth();
+
+  // Pre-fill user details if logged in
+  useEffect(() => {
+    if (profile) {
+      setQuoteState((prev) => ({
+        ...prev,
+        clientName: prev.clientName || profile.fullName,
+        clientEmail: prev.clientEmail || profile.email,
+        clientPhone: prev.clientPhone || profile.phone,
+      }));
+    }
+  }, [profile]);
 
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
   const [submittedBooking, setSubmittedBooking] = useState<BookingRecord | null>(null);
@@ -1373,6 +1388,16 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
                       />
                     </div>
                   </div>
+
+                  {/* Authenticated user banner if logged in */}
+                  {user && (
+                    <div className="flex items-center gap-2 p-3 bg-[#EAE5D9]/60 border border-[#E6DFD4] rounded-2xl text-xs text-[#3C4A3C]">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                      <span>
+                        Sesión activa como <strong>{profile?.fullName || user.email}</strong>. Tus datos han sido auto-completados.
+                      </span>
+                    </div>
+                  )}
 
                   {/* Name & Phone */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
