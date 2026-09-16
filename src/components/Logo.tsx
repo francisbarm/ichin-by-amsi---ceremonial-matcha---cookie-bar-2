@@ -36,13 +36,13 @@ export const Logo: React.FC<LogoProps> = ({ variant = 'full', className = '', on
           by/
         </span>
 
-        <img 
-          src="/branding/amsi-logo-cropped.png" 
-          alt="AMSI GROUP" 
-          className={`h-6 sm:h-7 lg:h-8 w-auto object-contain shrink-0 transition-all ${
-            isWhite ? 'brightness-0 invert' : ''
-          }`}
-        />
+        <div className={isWhite ? 'bg-white/90 px-2 py-0.5 rounded-lg flex items-center shadow-xs' : 'flex items-center'}>
+          <img 
+            src="/branding/amsi-logo-transparent.png" 
+            alt="AMSI GROUP" 
+            className="h-5 sm:h-6 lg:h-7 w-auto object-contain shrink-0"
+          />
+        </div>
       </div>
     </div>
   );

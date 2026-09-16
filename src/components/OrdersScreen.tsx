@@ -78,9 +78,12 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
           createdAt: new Date(item.creado_en).toLocaleDateString('es-VE'),
         }));
         setSupabaseBookings(mapped);
+      } else {
+        setSupabaseBookings([]);
       }
     } catch (err) {
       console.warn('Error al leer de Supabase:', err);
+      setSupabaseBookings([]);
     } finally {
       setLoading(false);
     }
