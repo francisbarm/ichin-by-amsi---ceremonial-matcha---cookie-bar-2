@@ -3,7 +3,8 @@ import { MenuItem, OrderCustomization } from '../types';
 import { MENU_ITEMS } from '../data/menuData';
 import { MenuCustomizationModal } from './MenuCustomizationModal';
 import { PackageRecommenderModal } from './PackageRecommenderModal';
-import { Sparkles, Plus, SlidersHorizontal, Heart, Leaf, Coffee, Calculator, ArrowRight, CheckCircle2, Shield, Eye } from 'lucide-react';
+import { MatchaRitualVideoSection } from './MatchaRitualVideoSection';
+import { Sparkles, Plus, SlidersHorizontal, Heart, Leaf, Coffee, Calculator, ArrowRight, CheckCircle2, Shield, Eye, Play } from 'lucide-react';
 
 interface MenuScreenProps {
   onAddToCart: (item: MenuItem, quantity: number, customization?: OrderCustomization) => void;
@@ -103,6 +104,19 @@ export const MenuScreen: React.FC<MenuScreenProps> = ({
                 <span>🛡️</span>
                 Vasos PET Cristalinos (Cero Vidrio)
               </span>
+            </div>
+
+            {/* Quick Video Ritual CTA Button */}
+            <div className="pt-4 flex items-center gap-3">
+              <a 
+                href="#matcha-ritual-video"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/15 hover:bg-white/25 text-[#FAF8F4] text-xs font-bold transition-all border border-white/25 active:scale-95 shadow-sm"
+              >
+                <span className="w-5 h-5 rounded-full bg-[#D4BE9B] text-[#2C2216] flex items-center justify-center">
+                  <Play className="w-2.5 h-2.5 fill-current ml-0.5" />
+                </span>
+                <span>Ver Video: Cómo se debe preparar el Matcha</span>
+              </a>
             </div>
           </div>
 
@@ -366,6 +380,11 @@ export const MenuScreen: React.FC<MenuScreenProps> = ({
           </div>
         ))}
       </div>
+
+      {/* Video Masterclass: Cómo se debe preparar el Matcha de forma firme */}
+      <MatchaRitualVideoSection 
+        onGoToQuoter={onGoToQuoterWithPackage ? () => onGoToQuoterWithPackage('matcha-bar-classic', 60, 'Boda') : undefined}
+      />
 
       {/* Official Branding & High-End Photography Gallery Section */}
       <div className="bg-white rounded-3xl p-5 sm:p-8 border border-[#E6DFD4] shadow-sm mb-12">

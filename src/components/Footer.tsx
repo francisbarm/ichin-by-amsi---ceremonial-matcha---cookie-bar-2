@@ -65,6 +65,23 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               </li>
               <li>
                 <button
+                  onClick={() => {
+                    onNavigate('menu');
+                    setTimeout(() => {
+                      const el = document.getElementById('matcha-ritual-video');
+                      if (el) el.scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                  }}
+                  className="hover:text-[#D4BE9B] transition-colors flex items-center gap-1.5 text-left"
+                >
+                  <span>• Video: Preparación Firme del Matcha</span>
+                  <span className="text-[9px] bg-[#B69C76] text-[#2C2216] font-extrabold px-1.5 py-0.2 rounded-full">
+                    HD
+                  </span>
+                </button>
+              </li>
+              <li>
+                <button
                   onClick={() => onNavigate('orders')}
                   className="hover:text-[#9BB098] transition-colors"
                 >
