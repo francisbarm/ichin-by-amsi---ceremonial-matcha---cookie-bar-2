@@ -39,7 +39,12 @@ export const AdminFinancePanel: React.FC<AdminFinancePanelProps> = ({
 
   // PIN de seguridad para acceso rápido de la administradora sin forzar login
   const [pinInput, setPinInput] = useState('');
-  const [isPinUnlocked, setIsPinUnlocked] = useState(false);
+  const [isPinUnlocked, setIsPinUnlocked] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('ichin_admin_pin_unlocked') === 'true';
+    }
+    return false;
+  });
   const [pinError, setPinError] = useState(false);
 
   // Selector de Pestaña Principal (Finanzas vs Inventario)
@@ -132,13 +137,25 @@ export const AdminFinancePanel: React.FC<AdminFinancePanelProps> = ({
 
   const handlePinSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (pinInput === 'AMSI2026' || pinInput === '2026' || pinInput === 'admin') {
+    const clean = pinInput.trim().toUpperCase();
+    if (clean === 'AMSI2026' || clean === '2026' || clean === 'ADMIN') {
       setIsPinUnlocked(true);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('ichin_admin_pin_unlocked', 'true');
+      }
       setPinError(false);
       showNotification('¡Acceso concedido al Panel de Administradora!');
     } else {
       setPinError(true);
     }
+  };
+
+  const handleLockAdmin = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('ichin_admin_pin_unlocked');
+    }
+    setIsPinUnlocked(false);
+    showNotification('Panel de Administradora bloqueado.');
   };
 
   // ==========================================
@@ -684,6 +701,27 @@ export const AdminFinancePanel: React.FC<AdminFinancePanelProps> = ({
               </button>
             </div>
           )}
+
+          {/* Panel Lock & Return controls */}
+          <div className="flex items-center gap-1.5 pl-2 border-l border-[#D9D0C3]">
+            <button
+              onClick={handleLockAdmin}
+              className="py-2.5 px-3 rounded-full bg-white border border-[#E6DFD4] text-[#7A8E77] hover:text-red-600 hover:border-red-200 text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all"
+              title="Bloquear acceso al panel administrativo"
+            >
+              <Lock className="w-3.5 h-3.5" />
+              <span className="hidden xl:inline">Bloquear</span>
+            </button>
+
+            <button
+              onClick={onBackToMenu}
+              className="py-2.5 px-3 rounded-full bg-[#FAF8F4] border border-[#E6DFD4] text-[#455546] hover:bg-[#EAE5D9] text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all"
+              title="Volver a la Carta Principal"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Salir</span>
+            </button>
+          </div>
         </div>
       </div>
 

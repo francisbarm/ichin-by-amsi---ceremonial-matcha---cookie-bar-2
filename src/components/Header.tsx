@@ -151,23 +151,25 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
             )}
 
-            {/* Admin Finance Panel Button */}
-            <button
-              id="header-finance-btn"
-              onClick={() => onNavigate('admin-finance')}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-full border border-[#E6DFD4] text-xs font-bold transition-all shadow-xs active:scale-95 ${
-                currentScreen === 'admin-finance'
-                  ? 'bg-[#455546] text-white'
-                  : 'bg-white text-[#455546] hover:bg-[#FAF8F4]'
-              }`}
-              title="Panel de Administradora (Gastos y Ventas)"
-            >
-              <DollarSign className="w-3.5 h-3.5 text-[#B69C76]" />
-              <span className="hidden lg:inline">Finanzas</span>
-              <span className="text-[9px] bg-[#B69C76] text-white px-1.5 py-0.5 rounded-full font-black">
-                Admin
-              </span>
-            </button>
+            {/* Admin Finance & Inventory Panel Button - SOLO PARA ADMINISTRADORA */}
+            {(isAdmin || (typeof window !== 'undefined' && localStorage.getItem('ichin_admin_pin_unlocked') === 'true')) && (
+              <button
+                id="header-finance-btn"
+                onClick={() => onNavigate('admin-finance')}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-full border border-[#E6DFD4] text-xs font-bold transition-all shadow-xs active:scale-95 ${
+                  currentScreen === 'admin-finance'
+                    ? 'bg-[#455546] text-white'
+                    : 'bg-white text-[#455546] hover:bg-[#FAF8F4]'
+                }`}
+                title="Panel de Administradora (Gastos, Ventas e Inventario)"
+              >
+                <DollarSign className="w-3.5 h-3.5 text-[#B69C76]" />
+                <span className="hidden lg:inline">Finanzas & Stock</span>
+                <span className="text-[9px] bg-[#B69C76] text-white px-1.5 py-0.5 rounded-full font-black">
+                  Admin
+                </span>
+              </button>
+            )}
 
             {/* User Authentication Menu / Button */}
             {user ? (
@@ -218,16 +220,18 @@ export const Header: React.FC<HeaderProps> = ({
                         <span>Mis Reservas & Eventos</span>
                       </button>
 
-                      <button
-                        onClick={() => {
-                          setIsUserMenuOpen(false);
-                          onNavigate('admin-finance');
-                        }}
-                        className="w-full px-4 py-2 text-left text-xs font-semibold text-[#4A5A4B] hover:bg-[#EAE5D9] flex items-center gap-2.5 transition-colors"
-                      >
-                        <DollarSign className="w-3.5 h-3.5 text-[#B69C76]" />
-                        <span>Panel de Gastos & Ventas</span>
-                      </button>
+                      {(isAdmin || (typeof window !== 'undefined' && localStorage.getItem('ichin_admin_pin_unlocked') === 'true')) && (
+                        <button
+                          onClick={() => {
+                            setIsUserMenuOpen(false);
+                            onNavigate('admin-finance');
+                          }}
+                          className="w-full px-4 py-2 text-left text-xs font-semibold text-[#4A5A4B] hover:bg-[#EAE5D9] flex items-center gap-2.5 transition-colors"
+                        >
+                          <DollarSign className="w-3.5 h-3.5 text-[#B69C76]" />
+                          <span>Panel de Finanzas & Stock</span>
+                        </button>
+                      )}
 
                       <button
                         onClick={() => {
@@ -335,17 +339,19 @@ export const Header: React.FC<HeaderProps> = ({
           >
             Reservas
           </button>
-          <button
-            id="mobile-nav-finance"
-            onClick={() => onNavigate('admin-finance')}
-            className={`flex-1 min-w-[75px] py-1.5 px-2 rounded-full text-center text-[11px] font-bold whitespace-nowrap transition-all ${
-              currentScreen === 'admin-finance'
-                ? 'bg-[#455546] text-white'
-                : 'text-[#4A5A4B] bg-[#F3EFE7]'
-            }`}
-          >
-            Finanzas
-          </button>
+          {(isAdmin || (typeof window !== 'undefined' && localStorage.getItem('ichin_admin_pin_unlocked') === 'true')) && (
+            <button
+              id="mobile-nav-finance"
+              onClick={() => onNavigate('admin-finance')}
+              className={`flex-1 min-w-[75px] py-1.5 px-2 rounded-full text-center text-[11px] font-bold whitespace-nowrap transition-all ${
+                currentScreen === 'admin-finance'
+                  ? 'bg-[#455546] text-white'
+                  : 'text-[#4A5A4B] bg-[#F3EFE7]'
+              }`}
+            >
+              Finanzas
+            </button>
+          )}
         </div>
       </div>
     </header>

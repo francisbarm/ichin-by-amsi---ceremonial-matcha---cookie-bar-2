@@ -2,12 +2,16 @@ import React from 'react';
 import { Logo } from './Logo';
 import { ScreenType } from '../types';
 import { MapPin, Phone, Instagram, Clock, Heart, Sparkles } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 interface FooterProps {
   onNavigate: (screen: ScreenType) => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
+  const { isAdmin } = useAuth();
+  const canAccessAdmin = isAdmin || (typeof window !== 'undefined' && localStorage.getItem('ichin_admin_pin_unlocked') === 'true');
+
   return (
     <footer id="app-footer" className="bg-[#3C4A3D] text-[#FAF8F4] border-t border-[#4D5D4E] mt-16 pt-12 pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -67,14 +71,16 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                   • Estado de Mis Reservas
                 </button>
               </li>
-              <li>
-                <button
-                  onClick={() => onNavigate('admin-finance')}
-                  className="hover:text-[#D4BE9B] transition-colors text-[#D4BE9B]/85"
-                >
-                  • Gestión de Finanzas (Admin)
-                </button>
-              </li>
+              {canAccessAdmin && (
+                <li>
+                  <button
+                    onClick={() => onNavigate('admin-finance')}
+                    className="hover:text-[#D4BE9B] transition-colors text-[#D4BE9B]/85"
+                  >
+                    • Gestión de Finanzas (Admin)
+                  </button>
+                </li>
+              )}
             </ul>
           </div>
 

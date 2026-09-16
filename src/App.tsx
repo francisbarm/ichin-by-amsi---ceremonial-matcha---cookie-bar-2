@@ -197,6 +197,10 @@ function MainApp() {
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
+        onNavigateToAdmin={() => {
+          setCurrentScreen('admin-finance');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
       />
 
       {/* Footer */}
