@@ -560,7 +560,7 @@ export const AdminFinancePanel: React.FC<AdminFinancePanelProps> = ({
               </label>
               <input
                 type="password"
-                placeholder="Ingresa PIN (ej. AMSI2026)"
+                placeholder="Introduce tu PIN Maestro"
                 value={pinInput}
                 onChange={(e) => {
                   setPinInput(e.target.value);
@@ -570,7 +570,7 @@ export const AdminFinancePanel: React.FC<AdminFinancePanelProps> = ({
               />
               {pinError && (
                 <p className="text-[11px] text-red-500 font-bold mt-1.5">
-                  PIN incorrecto. Intenta con AMSI2026
+                  PIN no autorizado. Acceso restringido a la administradora.
                 </p>
               )}
             </div>

@@ -398,12 +398,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     onClick={() => {
                       setPortal('admin');
                       setAdminMethod('pin');
-                      setAdminPin('AMSI2026');
                       setErrorMessage(null);
                     }}
                     className="block font-bold text-[#455546] underline hover:text-[#2A352B] mt-1"
                   >
-                    👉 Entrar de inmediato con PIN Maestro (AMSI2026)
+                    👉 Entrar de inmediato con tu PIN Maestro
                   </button>
                 )}
               </div>
@@ -429,7 +428,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <span>Desbloqueo Inmediato sin esperas</span>
                 </div>
                 <p className="text-[11px] leading-relaxed text-[#6A7869]">
-                  Ideal para cuando estás de viaje fuera del país o si deseas entrar al panel de inventario y finanzas de forma directa.
+                  Acceso directo y prioritario para la administradora de ICHIN By AMSI.
                 </p>
               </div>
 
@@ -442,7 +441,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <input
                     type="password"
                     required
-                    placeholder="Introduce el PIN Maestro (AMSI2026)"
+                    placeholder="••••••••"
                     value={adminPin}
                     onChange={(e) => setAdminPin(e.target.value)}
                     className="w-full pl-10 pr-3.5 py-3 bg-white border border-[#E6DFD4] rounded-xl text-sm tracking-widest font-bold text-center text-[#3C4A3C] placeholder:text-gray-400 focus:outline-none focus:border-[#7A8E77] focus:ring-1 focus:ring-[#7A8E77]"
@@ -459,13 +458,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </button>
 
               <div className="text-center pt-1">
-                <button
-                  type="button"
-                  onClick={() => setAdminPin('AMSI2026')}
-                  className="text-[11px] text-[#B69C76] hover:underline font-bold"
-                >
-                  Autocompletar PIN Maestro (AMSI2026)
-                </button>
+                <p className="text-[10px] text-[#7A8E77] font-medium">
+                  🔒 Clave secreta confidencial de la titular AMSI.
+                </p>
               </div>
             </form>
           ) : (
