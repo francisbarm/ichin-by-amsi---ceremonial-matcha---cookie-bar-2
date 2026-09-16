@@ -30,6 +30,54 @@ export interface FinancialTransaction {
   createdAt: string;
 }
 
+export type InventoryCategory =
+  | 'matcha_te'
+  | 'lacteos_bebidas'
+  | 'empaques_desechables'
+  | 'reposteria'
+  | 'merch_accesorios';
+
+export type InventoryUnit =
+  | 'unidades'
+  | 'latas (100g)'
+  | 'latas'
+  | 'litros'
+  | 'kg'
+  | 'g'
+  | 'botellas'
+  | 'paquetes'
+  | 'cajas';
+
+export interface InventoryItem {
+  id: string;
+  sku: string;
+  name: string;
+  category: InventoryCategory;
+  categoryLabel: string;
+  currentStock: number;
+  minStock: number;
+  unit: InventoryUnit;
+  costPerUnit: number;
+  supplier?: string;
+  location?: string;
+  lastRestockedDate?: string;
+  notes?: string;
+  updatedAt: string;
+}
+
+export interface InventoryMovement {
+  id: string;
+  itemId: string;
+  itemName: string;
+  type: 'entrada' | 'salida' | 'ajuste';
+  quantity: number;
+  previousStock: number;
+  newStock: number;
+  reason: 'compra' | 'evento' | 'merma' | 'conteo_fisico' | 'otro';
+  date: string;
+  notes?: string;
+}
+
 export interface MenuItem {
   id: string;
   name: string;
