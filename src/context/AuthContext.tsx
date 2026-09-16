@@ -35,13 +35,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
-  const adminEmail = (import.meta.env.VITE_ADMIN_EMAIL || 'eventos.ichin@gmail.com').toLowerCase();
+  const adminEmail = (import.meta.env.VITE_ADMIN_EMAIL || 'amsi.group@gmail.com').toLowerCase();
   
   // Identificación del Rol de Usuario (Administrador vs Cliente)
   const isUserAdmin = Boolean(
     user && (
       user.user_metadata?.role === 'admin' ||
-      user.email?.toLowerCase() === adminEmail
+      user.email?.toLowerCase() === adminEmail ||
+      user.email?.toLowerCase() === 'amsi.group@gmail.com' ||
+      user.email?.toLowerCase() === 'eventos.ichin@gmail.com'
     )
   );
 

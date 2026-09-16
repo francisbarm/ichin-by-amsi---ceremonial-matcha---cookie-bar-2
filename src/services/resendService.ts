@@ -144,7 +144,7 @@ export function generarHtmlCotizacion(data: EmailQuotePayload): string {
 export async function enviarCorreoCotizacionResend(data: EmailQuotePayload) {
   const apiKey = import.meta.env.VITE_RESEND_API_KEY;
   const fromEmail = import.meta.env.VITE_RESEND_FROM_EMAIL || 'ICHIN By AMSI <onboarding@resend.dev>';
-  const adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'eventos.ichin@gmail.com';
+  const adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'amsi.group@gmail.com';
 
   if (!data.toEmail || !data.toEmail.includes('@')) {
     console.warn('Correo de destinatario no válido o ausente:', data.toEmail);
@@ -258,7 +258,7 @@ export function generarMailtoCotizacion(data: {
   addons?: string[];
   specialRequests?: string;
 }): string {
-  const adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'eventos.ichin@gmail.com';
+  const adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'amsi.group@gmail.com';
   const subject = encodeURIComponent(`Solicitud de Cotización ICHIN By AMSI [${data.bookingCode}] - ${data.clientName}`);
   
   const bodyText = `Hola equipo de ICHIN By AMSI,\n\n` +
@@ -295,7 +295,7 @@ export function generarMailtoPedidoCarrito(data: {
   itemsList: string;
   totalEstimated: number;
 }): string {
-  const adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'eventos.ichin@gmail.com';
+  const adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'amsi.group@gmail.com';
   const subject = encodeURIComponent(`Solicitud de Pedido de Bebidas y Dulces - ${data.customerName || 'Cliente Web'}`);
   
   const bodyText = `Hola equipo de ICHIN By AMSI,\n\n` +
