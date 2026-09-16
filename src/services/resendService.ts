@@ -152,50 +152,74 @@ export async function enviarCorreoCotizacionResend(data: EmailQuotePayload) {
   }
 
   const html = generarHtmlCotizacion(data);
-  const asunto = `🍵 Tu Cotización ICHIN By AMSI [${data.bookingCode}]`;
+  const asunto = `🍵 Cotización ICHIN By AMSI [${data.bookingCode}] - ${data.clientName}`;
 
-  // Destinatarios: Cliente + Administrador
-  const recipients = [data.toEmail];
-  if (adminEmail && adminEmail.includes('@') && adminEmail !== data.toEmail) {
-    recipients.push(adminEmail);
-  }
+  // Para evitar restricciones de dominio en cuentas gratuitas (onboarding@resend.dev),
+  // enviamos directamente al correo de la Administradora (amsi.group@gmail.com)
+  // y establecemos reply_to al correo del cliente para que pueda responderle en 1 clic.
+  const isDefaultTrialDomain = fromEmail.includes('onboarding@resend.dev');
+  const targetRecipients = isDefaultTrialDomain || !data.toEmail
+    ? [adminEmail]
+    : (data.toEmail === adminEmail ? [adminEmail] : [data.toEmail, adminEmail]);
 
-  // Si no hay API Key de Resend configurada aún
+  const emailPayload = {
+    from: fromEmail,
+    to: targetRecipients,
+    reply_to: data.toEmail,
+    subject: asunto,
+    html: html
+  };
+
+  // Si no hay API Key de Resend configurada
   if (!apiKey || apiKey === 're_tu_resend_api_key_aqui') {
-    console.info(`[Resend Simulado] No se detectó VITE_RESEND_API_KEY activa. Correo simulado para: ${recipients.join(', ')}`);
+    console.info(`[Resend Simulado] No se detectó VITE_RESEND_API_KEY activa. Correo simulado para: ${targetRecipients.join(', ')}`);
     
-    // Registrar en Supabase como pendiente de configuración
     await supabase.from('notificaciones').insert([{
       cotizacion_id: data.cotizacionId || null,
       tipo: 'email_confirmacion',
       proveedor: 'resend',
-      destinatario: data.toEmail,
+      destinatario: adminEmail,
       asunto: asunto,
       estado: 'registrado_en_bd',
       detalles: { 
         bookingCode: data.bookingCode, 
-        destinatarios: recipients,
+        destinatarios: targetRecipients,
+        replyTo: data.toEmail,
         mensaje: 'Guardado exitosamente en base de datos Supabase.' 
       }
     }]);
 
-    return { success: true, simulado: true, recipients };
+    return { success: true, simulado: true, recipients: targetRecipients };
   }
 
   try {
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        from: fromEmail,
-        to: recipients,
-        subject: asunto,
-        html: html
-      })
-    });
+    let response: Response;
+
+    // 1. Intentar endpoint serverless /api/send-email (Vercel)
+    try {
+      response = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(emailPayload)
+      });
+      // Si no existe (404), intentar vía proxy dev o API directa
+      if (response.status === 404) {
+        throw new Error('Endpoint /api/send-email no encontrado');
+      }
+    } catch {
+      const endpoint = typeof window !== 'undefined' && window.location.hostname === 'localhost'
+        ? '/api/resend-direct/emails'
+        : 'https://api.resend.com/emails';
+
+      response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(emailPayload)
+      });
+    }
 
     const resJson = await response.json();
 
@@ -205,10 +229,10 @@ export async function enviarCorreoCotizacionResend(data: EmailQuotePayload) {
         cotizacion_id: data.cotizacionId || null,
         tipo: 'email_confirmacion',
         proveedor: 'resend',
-        destinatario: data.toEmail,
+        destinatario: adminEmail,
         asunto: asunto,
         estado: 'enviado',
-        detalles: resJson
+        detalles: { resJson, replyTo: data.toEmail, cliente: data.clientName }
       }]);
       return { success: true, data: resJson };
     } else {
@@ -217,7 +241,7 @@ export async function enviarCorreoCotizacionResend(data: EmailQuotePayload) {
         cotizacion_id: data.cotizacionId || null,
         tipo: 'email_confirmacion',
         proveedor: 'resend',
-        destinatario: data.toEmail,
+        destinatario: adminEmail,
         asunto: asunto,
         estado: 'fallido',
         error_mensaje: JSON.stringify(resJson)
@@ -230,7 +254,7 @@ export async function enviarCorreoCotizacionResend(data: EmailQuotePayload) {
       cotizacion_id: data.cotizacionId || null,
       tipo: 'email_confirmacion',
       proveedor: 'resend',
-      destinatario: data.toEmail,
+      destinatario: adminEmail,
       asunto: asunto,
       estado: 'fallido',
       error_mensaje: err?.message || String(err)
