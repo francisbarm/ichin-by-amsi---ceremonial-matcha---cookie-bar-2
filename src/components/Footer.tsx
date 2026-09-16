@@ -23,7 +23,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             <Logo variant="white" onClick={() => onNavigate('menu')} />
             
             <p className="text-xs text-[#FAF8F4]/80 leading-relaxed max-w-sm">
-              Santuario de matcha ceremonial y pastelería artesanal sobre ruedas. Llevamos la pausa verde japonesa a bodas exclusivas, activaciones corporativas y eventos privados en Caracas.
+              Santuario de matcha ceremonial y pastelería artesanal sobre ruedas de <strong className="text-[#D4BE9B]">ICHIN by/ Amsi</strong>. Llevamos la pausa verde japonesa a bodas exclusivas, activaciones corporativas y eventos privados en Caracas.
             </p>
 
             <div className="flex items-center gap-3 pt-2">
@@ -141,7 +141,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
         {/* Subfooter */}
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#FAF8F4]/60 gap-3">
           <div>
-            © {new Date().getFullYear()} ICHIN By AMSI. Todos los derechos reservados.
+            © {new Date().getFullYear()} ICHIN by/ Amsi. Todos los derechos reservados.
           </div>
           <div className="flex items-center gap-4">
             <span>Bebidas Naturales para Mentes Despiertas</span>

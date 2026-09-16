@@ -13,31 +13,33 @@ export const Logo: React.FC<LogoProps> = ({ variant = 'full', className = '', on
     <div 
       id="brand-logo"
       onClick={onClick}
-      className={`inline-flex items-center gap-2 select-none cursor-pointer transition-transform duration-200 active:scale-95 ${className}`}
+      className={`inline-flex items-center gap-2 select-none cursor-pointer shrink-0 transition-transform duration-200 active:scale-95 ${className}`}
     >
       {/* Official Extracted Logo: Chasen whisk + 一秋 + ICHIN MATCHA - COOKIES Y MAS */}
       <img 
         src="/branding/ichin-logo-transparent.png" 
         alt="ICHIN MATCHA - Cookies y Más" 
-        className={`h-9 sm:h-11 w-auto object-contain ${
+        className={`h-8 sm:h-10 w-auto object-contain shrink-0 ${
           isWhite ? 'brightness-0 invert' : ''
         }`}
       />
 
-      {/* Co-branding Lockup with transparent AMSI GROUP */}
-      <div className="flex items-center gap-1.5 pl-2 border-l border-[#E6DFD4]">
+      {/* Official Co-branding Lockup: by/ Amsi */}
+      <div className={`flex items-center gap-1 sm:gap-1.5 pl-2 sm:pl-2.5 border-l shrink-0 ${
+        isWhite ? 'border-white/20' : 'border-[#364437]/25'
+      }`}>
         <span 
-          className={`text-[9px] sm:text-[10px] font-medium lowercase tracking-wider ${
-            isWhite ? 'text-[#FAF8F4]/80' : 'text-[#75786E]'
+          className={`text-[10px] sm:text-xs font-bold tracking-tight lowercase select-none shrink-0 ${
+            isWhite ? 'text-[#D4BE9B]' : 'text-[#5A6D58]'
           }`}
         >
-          by
+          by/
         </span>
 
         <img 
-          src="/branding/amsi-logo-transparent.png" 
+          src="/branding/amsi-logo-cropped.png" 
           alt="AMSI GROUP" 
-          className={`h-4 sm:h-5 object-contain ${
+          className={`h-4 sm:h-5 w-auto object-contain shrink-0 ${
             isWhite ? 'brightness-0 invert' : ''
           }`}
         />

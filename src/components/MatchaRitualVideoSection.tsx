@@ -207,7 +207,7 @@ export const MatchaRitualVideoSection: React.FC<MatchaRitualVideoSectionProps> =
               El Arte del Matcha: Cómo se Debe Preparar de Forma Firme
             </h2>
             <p className="text-xs sm:text-sm text-[#FAF8F4]/85 mt-2 leading-relaxed">
-              En ICHIN By AMSI no revolvemos: batimos con firmeza milimétrica y devoción. Reproduce nuestro video nativo oficial o sube tu propia grabación directa para mostrar a tus clientes el ritual auténtico del Chasen.
+              En <strong className="text-[#D4BE9B]">ICHIN by/ Amsi</strong> no revolvemos: batimos con firmeza milimétrica y devoción. Reproduce nuestro video nativo oficial o sube tu propia grabación directa para mostrar a tus clientes el ritual auténtico del Chasen.
             </p>
           </div>
 
@@ -242,7 +242,7 @@ export const MatchaRitualVideoSection: React.FC<MatchaRitualVideoSectionProps> =
               }`}
             >
               <Video className="w-3.5 h-3.5 text-[#B69C76]" />
-              <span>Video Nativo ICHIN</span>
+              <span>Video Nativo ICHIN by/ Amsi</span>
             </button>
 
             <button
@@ -404,7 +404,7 @@ export const MatchaRitualVideoSection: React.FC<MatchaRitualVideoSectionProps> =
                     </button>
 
                     <span className="text-[11px] text-white/80 font-medium hidden sm:inline">
-                      {activeTab === 'custom' ? 'Video Personalizado AMSI' : 'Ritual Ceremonial de Batido ICHIN'}
+                      {activeTab === 'custom' ? 'Video Personalizado ICHIN by/ Amsi' : 'Ritual Ceremonial de Batido ICHIN by/ Amsi'}
                     </span>
                   </div>
 
@@ -425,7 +425,7 @@ export const MatchaRitualVideoSection: React.FC<MatchaRitualVideoSectionProps> =
             <div className="p-4 sm:p-5 rounded-2xl bg-[#2C372D] border border-[#4D5D4E] space-y-2">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#D4BE9B] text-[#2C2216]">
-                  {activeTab === 'custom' ? 'Video de la Dueña / Administradora' : 'Técnica Oficial ICHIN'}
+                  {activeTab === 'custom' ? 'Video de la Dueña / Administradora' : 'Técnica Oficial ICHIN by/ Amsi'}
                 </span>
                 <span className="text-[11px] text-[#D4BE9B] font-medium flex items-center gap-1">
                   <Clock className="w-3.5 h-3.5" />
@@ -441,7 +441,7 @@ export const MatchaRitualVideoSection: React.FC<MatchaRitualVideoSectionProps> =
 
               <p className="text-xs text-[#FAF8F4]/80 leading-relaxed">
                 {activeTab === 'custom'
-                  ? 'Este es tu video propio cargado. Puedes reemplazarlo en cualquier momento desde tu teléfono o computadora cuando filmes nuevo contenido en tus eventos de Caracas.'
+                  ? 'Este es tu video propio cargado para ICHIN by/ Amsi. Puedes reemplazarlo en cualquier momento desde tu teléfono o computadora cuando filmes nuevo contenido en tus eventos de Caracas.'
                   : 'Observa la suspensión de los 100 filamentos de bambú blanco justo bajo la superficie para inyectar microburbujas densas en movimiento lineal "W" a 80°C. La muñeca se mantiene suelta y enérgica sin mover el hombro ni raspar el cuenco.'}
               </p>
 
@@ -458,7 +458,7 @@ export const MatchaRitualVideoSection: React.FC<MatchaRitualVideoSectionProps> =
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold uppercase tracking-wider text-[#D4BE9B] flex items-center gap-2">
                 <Award className="w-4 h-4 text-[#D4BE9B]" />
-                <span>Protocolo de Batido Firme ICHIN</span>
+                <span>Protocolo de Batido Firme ICHIN by/ Amsi</span>
               </h3>
               <span className="text-[11px] text-[#FAF8F4]/70">Paso a paso</span>
             </div>

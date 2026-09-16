@@ -69,7 +69,7 @@ export const MenuScreen: React.FC<MenuScreenProps> = ({
           <div className="lg:col-span-7">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[#D4BE9B] text-xs font-bold uppercase tracking-wider mb-3">
               <Sparkles className="w-3.5 h-3.5 text-[#D4BE9B]" />
-              <span>Barra Móvil Ceremonial para Eventos Exclusivos</span>
+              <span>ICHIN by/ Amsi • Barra Móvil Ceremonial para Eventos Exclusivos</span>
             </div>
 
             <h1 
@@ -80,7 +80,7 @@ export const MenuScreen: React.FC<MenuScreenProps> = ({
             </h1>
 
             <p className="text-xs sm:text-base text-[#FAF8F4]/90 font-normal leading-relaxed mb-5 max-w-xl">
-              Matcha ceremonial japonés de primera cosecha batido al momento con chasen de bambú, selección de pastelería fina, bombones artesanales y galletas horneadas al día. Llevamos nuestro carrito insignia a bodas, lanzamientos de marca y celebraciones VIP en Caracas.
+              Matcha ceremonial japonés de primera cosecha batido al momento con chasen de bambú, pastelería fina, bombones artesanales y galletas horneadas al día por <strong className="text-white font-semibold">ICHIN by/ Amsi</strong>. Llevamos nuestro carrito insignia a bodas, lanzamientos de marca y celebraciones VIP en Caracas.
             </p>
 
             {/* Quick stats / trust chips */}

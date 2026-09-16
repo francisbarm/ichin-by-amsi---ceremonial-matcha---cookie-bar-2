@@ -187,7 +187,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 Menú de tu Evento
               </h3>
               <span className="text-[10px] text-[#7A8E77] font-bold uppercase tracking-wider">
-                Barra Móvil ICHIN • Caracas
+                Barra Móvil ICHIN by/ Amsi • Caracas
               </span>
             </div>
             <span className="text-xs bg-[#F3EFE7] text-[#455546] px-2 py-0.5 rounded-full font-extrabold ml-1">
@@ -261,7 +261,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     </div>
 
                     <div className="text-[11px] text-[#7A8E77] font-bold">
-                      Selección de Barra ICHIN
+                      Selección de Barra ICHIN by/ Amsi
                     </div>
 
                     {/* Customizations summary tags */}

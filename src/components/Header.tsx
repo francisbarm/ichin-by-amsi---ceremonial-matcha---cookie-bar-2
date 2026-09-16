@@ -47,18 +47,18 @@ export const Header: React.FC<HeaderProps> = ({
         className="bg-[#455546] text-[#FAF8F4] text-[11px] font-medium tracking-wider uppercase py-1.5 px-4 text-center flex items-center justify-center gap-2"
       >
         <span className="w-1.5 h-1.5 rounded-full bg-[#9CB098] animate-pulse"></span>
-        <span>Caracas • Carrito Móvil para Bodas, Activaciones y Eventos Privados</span>
+        <span>ICHIN by/ Amsi • Caracas • Carrito Móvil para Bodas, Activaciones y Eventos Privados</span>
         <span className="hidden md:inline-block opacity-60">|</span>
         <span className="hidden md:inline-block text-[#D6C4A5] font-semibold">
           Ceremonial Uji Grade Matcha
         </span>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-20 gap-3 sm:gap-6">
           
           {/* Logo */}
-          <div className="flex items-center">
+          <div className="flex items-center shrink-0">
             <Logo 
               variant="full" 
               onClick={() => onNavigate('menu')} 
@@ -66,7 +66,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Desktop Navigation Links */}
-          <nav id="desktop-nav" className="hidden md:flex items-center gap-1.5 bg-[#F3EFE7]/90 p-1.5 rounded-full border border-[#E6DFD4]">
+          <nav id="desktop-nav" className="hidden lg:flex items-center gap-1.5 bg-[#F3EFE7]/90 p-1.5 rounded-full border border-[#E6DFD4] shrink-0">
             <button
               id="nav-btn-menu"
               onClick={() => onNavigate('menu')}
