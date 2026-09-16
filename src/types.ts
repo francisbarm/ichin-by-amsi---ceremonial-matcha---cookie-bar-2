@@ -1,4 +1,34 @@
-export type ScreenType = 'menu' | 'quoter' | 'cart-showcase' | 'orders';
+export type ScreenType = 'menu' | 'quoter' | 'cart-showcase' | 'orders' | 'admin-finance';
+
+export type TransactionType = 'ingreso' | 'gasto';
+
+export type FinancialCategory =
+  | 'insumos_matcha'
+  | 'leche_ingredientes'
+  | 'vasos_empaques'
+  | 'personal_baristas'
+  | 'logistica_traslado'
+  | 'mobiliario_toldos'
+  | 'marketing_marca'
+  | 'evento_boda'
+  | 'evento_corporativo'
+  | 'evento_privado'
+  | 'venta_mostrador'
+  | 'otros';
+
+export interface FinancialTransaction {
+  id: string;
+  type: TransactionType;
+  category: FinancialCategory;
+  categoryLabel: string;
+  amount: number;
+  description: string;
+  date: string;
+  paymentMethod?: 'efectivo_usd' | 'pago_movil' | 'zelle' | 'transferencia';
+  relatedBookingCode?: string;
+  notes?: string;
+  createdAt: string;
+}
 
 export interface MenuItem {
   id: string;

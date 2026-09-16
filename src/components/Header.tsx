@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ScreenType } from '../types';
 import { Logo } from './Logo';
-import { ShoppingBag, Calendar, Coffee, Sparkles, Clock, QrCode, User as UserIcon, LogOut, ChevronDown } from 'lucide-react';
+import { ShoppingBag, Calendar, Coffee, Sparkles, Clock, QrCode, User as UserIcon, LogOut, ChevronDown, DollarSign } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 interface HeaderProps {
@@ -151,6 +151,24 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
             )}
 
+            {/* Admin Finance Panel Button */}
+            <button
+              id="header-finance-btn"
+              onClick={() => onNavigate('admin-finance')}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-full border border-[#E6DFD4] text-xs font-bold transition-all shadow-xs active:scale-95 ${
+                currentScreen === 'admin-finance'
+                  ? 'bg-[#455546] text-white'
+                  : 'bg-white text-[#455546] hover:bg-[#FAF8F4]'
+              }`}
+              title="Panel de Administradora (Gastos y Ventas)"
+            >
+              <DollarSign className="w-3.5 h-3.5 text-[#B69C76]" />
+              <span className="hidden lg:inline">Finanzas</span>
+              <span className="text-[9px] bg-[#B69C76] text-white px-1.5 py-0.5 rounded-full font-black">
+                Admin
+              </span>
+            </button>
+
             {/* User Authentication Menu / Button */}
             {user ? (
               <div className="relative" ref={userMenuRef}>
@@ -198,6 +216,17 @@ export const Header: React.FC<HeaderProps> = ({
                       >
                         <Clock className="w-3.5 h-3.5 text-[#7A8E77]" />
                         <span>Mis Reservas & Eventos</span>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          onNavigate('admin-finance');
+                        }}
+                        className="w-full px-4 py-2 text-left text-xs font-semibold text-[#4A5A4B] hover:bg-[#EAE5D9] flex items-center gap-2.5 transition-colors"
+                      >
+                        <DollarSign className="w-3.5 h-3.5 text-[#B69C76]" />
+                        <span>Panel de Gastos & Ventas</span>
                       </button>
 
                       <button
@@ -298,13 +327,24 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             id="mobile-nav-orders"
             onClick={() => onNavigate('orders')}
-            className={`flex-1 min-w-[80px] py-1.5 px-2 rounded-full text-center text-[11px] font-bold whitespace-nowrap transition-all ${
+            className={`flex-1 min-w-[75px] py-1.5 px-2 rounded-full text-center text-[11px] font-bold whitespace-nowrap transition-all ${
               currentScreen === 'orders'
                 ? 'bg-[#455546] text-white'
                 : 'text-[#4A5A4B] bg-[#F3EFE7]'
             }`}
           >
             Reservas
+          </button>
+          <button
+            id="mobile-nav-finance"
+            onClick={() => onNavigate('admin-finance')}
+            className={`flex-1 min-w-[75px] py-1.5 px-2 rounded-full text-center text-[11px] font-bold whitespace-nowrap transition-all ${
+              currentScreen === 'admin-finance'
+                ? 'bg-[#455546] text-white'
+                : 'text-[#4A5A4B] bg-[#F3EFE7]'
+            }`}
+          >
+            Finanzas
           </button>
         </div>
       </div>

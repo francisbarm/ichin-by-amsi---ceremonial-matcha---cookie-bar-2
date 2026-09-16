@@ -67,6 +67,14 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                   • Estado de Mis Reservas
                 </button>
               </li>
+              <li>
+                <button
+                  onClick={() => onNavigate('admin-finance')}
+                  className="hover:text-[#D4BE9B] transition-colors text-[#D4BE9B]/85"
+                >
+                  • Gestión de Finanzas (Admin)
+                </button>
+              </li>
             </ul>
           </div>
 

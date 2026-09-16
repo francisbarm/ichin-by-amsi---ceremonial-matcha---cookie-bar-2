@@ -11,6 +11,7 @@ import { MenuScreen } from './components/MenuScreen';
 import { EventQuoterScreen } from './components/EventQuoterScreen';
 import { CartShowcaseScreen } from './components/CartShowcaseScreen';
 import { OrdersScreen } from './components/OrdersScreen';
+import { AdminFinancePanel } from './components/AdminFinancePanel';
 import { CartDrawer } from './components/CartDrawer';
 import { MobileQrModal } from './components/MobileQrModal';
 import { AuthModal } from './components/AuthModal';
@@ -31,7 +32,8 @@ function MainApp() {
       const params = new URLSearchParams(window.location.search);
       let s = params.get('screen') || window.location.hash.replace('#', '');
       if (s === 'cart') s = 'cart-showcase';
-      if (['menu', 'quoter', 'cart-showcase', 'orders'].includes(s)) {
+      if (s === 'finanzas' || s === 'admin') s = 'admin-finance';
+      if (['menu', 'quoter', 'cart-showcase', 'orders', 'admin-finance'].includes(s)) {
         return s as ScreenType;
       }
     }
@@ -161,6 +163,16 @@ function MainApp() {
               setCurrentScreen('quoter');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
+          />
+        )}
+
+        {currentScreen === 'admin-finance' && (
+          <AdminFinancePanel
+            onBackToMenu={() => {
+              setCurrentScreen('menu');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onOpenAuth={() => setIsAuthModalOpen(true)}
           />
         )}
       </main>
