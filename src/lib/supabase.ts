@@ -155,101 +155,7 @@ export async function guardarPedidoCarritoSupabase(params: {
 
 import { FinancialTransaction, InventoryItem, InventoryMovement } from '../types';
 
-export const INITIAL_TRANSACTIONS: FinancialTransaction[] = [
-  {
-    id: 'tx-001',
-    type: 'ingreso',
-    category: 'evento_boda',
-    categoryLabel: 'Boda de Lujo (Altamira)',
-    amount: 850.00,
-    description: 'Reserva Boda Jardín Country Club (120 tazas + toldos + dijes)',
-    date: '2026-09-12',
-    paymentMethod: 'zelle',
-    relatedBookingCode: 'ICH-VAL78',
-    notes: 'Abono 100% recibido vía Zelle',
-    createdAt: '2026-09-12T14:30:00.000Z',
-  },
-  {
-    id: 'tx-002',
-    type: 'gasto',
-    category: 'insumos_matcha',
-    categoryLabel: 'Matcha Ceremonial Uji',
-    amount: 140.00,
-    description: 'Importación 500g Matcha Ceremonial Harvest Uji Kyoto',
-    date: '2026-09-10',
-    paymentMethod: 'transferencia',
-    notes: 'Lote fresco para eventos de septiembre y octubre',
-    createdAt: '2026-09-10T10:15:00.000Z',
-  },
-  {
-    id: 'tx-003',
-    type: 'ingreso',
-    category: 'evento_corporativo',
-    categoryLabel: 'Activación Corporativa',
-    amount: 620.00,
-    description: 'Activación de Marca en Las Mercedes (80 personas)',
-    date: '2026-09-08',
-    paymentMethod: 'transferencia',
-    relatedBookingCode: 'ICH-CORP09',
-    createdAt: '2026-09-08T16:00:00.000Z',
-  },
-  {
-    id: 'tx-004',
-    type: 'gasto',
-    category: 'vasos_empaques',
-    categoryLabel: 'Vasos y Empaques PET',
-    amount: 65.00,
-    description: '500 Vasos PET cristalinos 16oz + Tapas planas y sorbetes ecológicos',
-    date: '2026-09-07',
-    paymentMethod: 'pago_movil',
-    createdAt: '2026-09-07T11:20:00.000Z',
-  },
-  {
-    id: 'tx-005',
-    type: 'gasto',
-    category: 'leche_ingredientes',
-    categoryLabel: 'Leches Vegetales e Insumos',
-    amount: 48.00,
-    description: 'Caja Leche de Avena Barista Edition + Leche de Almendras + Vainilla Natural',
-    date: '2026-09-06',
-    paymentMethod: 'pago_movil',
-    createdAt: '2026-09-06T09:40:00.000Z',
-  },
-  {
-    id: 'tx-006',
-    type: 'gasto',
-    category: 'personal_baristas',
-    categoryLabel: 'Honorarios Baristas',
-    amount: 80.00,
-    description: 'Pago por servicio 2 Baristas expertos en batido chasen en vivo',
-    date: '2026-09-05',
-    paymentMethod: 'efectivo_usd',
-    relatedBookingCode: 'ICH-VAL78',
-    createdAt: '2026-09-05T20:00:00.000Z',
-  },
-  {
-    id: 'tx-007',
-    type: 'gasto',
-    category: 'logistica_traslado',
-    categoryLabel: 'Logística y Flete Carrito',
-    amount: 35.00,
-    description: 'Traslado ida y vuelta de carrito móvil, toldos y mobiliario a locación',
-    date: '2026-09-05',
-    paymentMethod: 'efectivo_usd',
-    createdAt: '2026-09-05T08:00:00.000Z',
-  },
-  {
-    id: 'tx-008',
-    type: 'ingreso',
-    category: 'venta_mostrador',
-    categoryLabel: 'Ventas Carrito Pop-up',
-    amount: 195.00,
-    description: 'Ventas al paso en evento privado (Bebidas especiales + Cookies artesanales)',
-    date: '2026-09-03',
-    paymentMethod: 'pago_movil',
-    createdAt: '2026-09-03T18:30:00.000Z',
-  },
-];
+export const INITIAL_TRANSACTIONS: FinancialTransaction[] = [];
 
 /**
  * Obtiene todas las transacciones financieras (Supabase con respaldo en localStorage)
@@ -264,7 +170,7 @@ export async function obtenerTransaccionesFinancieras(): Promise<FinancialRecord
       .select('*')
       .order('date', { ascending: false });
 
-    if (!error && data && data.length > 0) {
+    if (!error && data) {
       const mapped: FinancialTransaction[] = data.map((d: any) => ({
         id: d.id,
         type: d.type,
@@ -291,7 +197,13 @@ export async function obtenerTransaccionesFinancieras(): Promise<FinancialRecord
   if (stored) {
     try {
       const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed)) {
+        // Limpiar mock items previos que empezaban con 'tx-00' para iniciar limpio
+        const containsMock = parsed.some((item: any) => item.id && String(item.id).startsWith('tx-00'));
+        if (containsMock) {
+          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify([]));
+          return { data: [], source: 'local' };
+        }
         return { data: parsed, source: 'local' };
       }
     } catch (e) {
@@ -299,9 +211,9 @@ export async function obtenerTransaccionesFinancieras(): Promise<FinancialRecord
     }
   }
 
-  // 3. Inicializar con datos maestros por defecto
-  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(INITIAL_TRANSACTIONS));
-  return { data: INITIAL_TRANSACTIONS, source: 'default' };
+  // 3. Inicializar vacío
+  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify([]));
+  return { data: [], source: 'default' };
 }
 
 export interface FinancialRecordResult {
@@ -380,248 +292,7 @@ export async function eliminarTransaccionFinanciera(id: string): Promise<boolean
 // MÓDULO DE CONTROL DE INVENTARIO (ADMIN)
 // ==========================================
 
-export const INITIAL_INVENTORY: InventoryItem[] = [
-  {
-    id: 'inv-001',
-    sku: 'MAT-UJI-100',
-    name: 'Matcha Ceremonial Uji Grado A (100g)',
-    category: 'matcha_te',
-    categoryLabel: 'Matcha & Té Ceremonial',
-    currentStock: 18,
-    minStock: 6,
-    unit: 'latas (100g)',
-    costPerUnit: 22.00,
-    supplier: 'Marukyu Koyamaen Kyoto',
-    location: 'Almacén Central',
-    lastRestockedDate: '2026-09-10',
-    notes: 'Primer cosecha ceremonial de primavera (Uji, Kioto)',
-    updatedAt: '2026-09-10T10:00:00.000Z',
-  },
-  {
-    id: 'inv-002',
-    sku: 'MAT-KIO-100',
-    name: 'Matcha Imperial Kioto Reserva (100g)',
-    category: 'matcha_te',
-    categoryLabel: 'Matcha & Té Ceremonial',
-    currentStock: 8,
-    minStock: 3,
-    unit: 'latas (100g)',
-    costPerUnit: 32.00,
-    supplier: 'Uji Tea Master Selection',
-    location: 'Almacén Central',
-    lastRestockedDate: '2026-09-08',
-    notes: 'Reserva exclusiva para bodas VIP y catas privadas',
-    updatedAt: '2026-09-08T12:00:00.000Z',
-  },
-  {
-    id: 'inv-003',
-    sku: 'LAC-AVE-001',
-    name: 'Leche de Avena Barista Edition',
-    category: 'lacteos_bebidas',
-    categoryLabel: 'Lácteos & Jarabes',
-    currentStock: 34,
-    minStock: 12,
-    unit: 'litros',
-    costPerUnit: 3.50,
-    supplier: 'Oatly / Minor Figures VE',
-    location: 'Cava Refrigerada',
-    lastRestockedDate: '2026-09-12',
-    notes: 'Textura sedosa para latte art ceremonial',
-    updatedAt: '2026-09-12T15:00:00.000Z',
-  },
-  {
-    id: 'inv-004',
-    sku: 'LAC-ALM-001',
-    name: 'Leche de Almendras Sin Azúcar',
-    category: 'lacteos_bebidas',
-    categoryLabel: 'Lácteos & Jarabes',
-    currentStock: 20,
-    minStock: 8,
-    unit: 'litros',
-    costPerUnit: 3.20,
-    supplier: 'Distribuidora Gourmet Caracas',
-    location: 'Cava Refrigerada',
-    lastRestockedDate: '2026-09-11',
-    notes: 'Para opciones veganas y keto friendly',
-    updatedAt: '2026-09-11T14:00:00.000Z',
-  },
-  {
-    id: 'inv-005',
-    sku: 'LAC-VAI-MAD',
-    name: 'Jarabe de Vainilla Bourbon Madagascar',
-    category: 'lacteos_bebidas',
-    categoryLabel: 'Lácteos & Jarabes',
-    currentStock: 5,
-    minStock: 2,
-    unit: 'botellas',
-    costPerUnit: 14.00,
-    supplier: 'Monin / Artisan Syrups',
-    location: 'Carrito Móvil',
-    lastRestockedDate: '2026-09-05',
-    notes: 'Endulzante botánico suave para lattes',
-    updatedAt: '2026-09-05T09:00:00.000Z',
-  },
-  {
-    id: 'inv-006',
-    sku: 'LAC-STR-PUR',
-    name: 'Puré de Fresas Frescas Naturales',
-    category: 'lacteos_bebidas',
-    categoryLabel: 'Lácteos & Jarabes',
-    currentStock: 12,
-    minStock: 4,
-    unit: 'kg',
-    costPerUnit: 6.50,
-    supplier: 'Fresas de Galipán',
-    location: 'Cava Refrigerada',
-    lastRestockedDate: '2026-09-14',
-    notes: 'Insumo estrella para Strawberry Matcha Latte',
-    updatedAt: '2026-09-14T08:00:00.000Z',
-  },
-  {
-    id: 'inv-007',
-    sku: 'EMP-VAS-12P',
-    name: 'Vasos PET Cristal 12oz Logo ICHIN',
-    category: 'empaques_desechables',
-    categoryLabel: 'Empaques & Vasos',
-    currentStock: 420,
-    minStock: 150,
-    unit: 'unidades',
-    costPerUnit: 0.35,
-    supplier: 'Envases Serigrafiados Caracas',
-    location: 'Carrito Móvil',
-    lastRestockedDate: '2026-09-07',
-    notes: '100% Reciclables y ultra cristalinos con serigrafía',
-    updatedAt: '2026-09-07T11:00:00.000Z',
-  },
-  {
-    id: 'inv-008',
-    sku: 'EMP-TAP-DOM',
-    name: 'Tapas Domo PET 12oz',
-    category: 'empaques_desechables',
-    categoryLabel: 'Empaques & Vasos',
-    currentStock: 450,
-    minStock: 150,
-    unit: 'unidades',
-    costPerUnit: 0.12,
-    supplier: 'Envases Serigrafiados Caracas',
-    location: 'Carrito Móvil',
-    lastRestockedDate: '2026-09-07',
-    notes: 'Compatibles con vasos de 12oz y 16oz',
-    updatedAt: '2026-09-07T11:00:00.000Z',
-  },
-  {
-    id: 'inv-009',
-    sku: 'EMP-PIT-ECO',
-    name: 'Pitillos Biodegradables Bambú/Papel',
-    category: 'empaques_desechables',
-    categoryLabel: 'Empaques & Vasos',
-    currentStock: 8,
-    minStock: 3,
-    unit: 'paquetes',
-    costPerUnit: 4.00,
-    supplier: 'EcoSupply VE',
-    location: 'Carrito Móvil',
-    lastRestockedDate: '2026-09-05',
-    notes: 'Paquetes de 100 unidades color kraft',
-    updatedAt: '2026-09-05T10:00:00.000Z',
-  },
-  {
-    id: 'inv-010',
-    sku: 'EMP-SRV-KRA',
-    name: 'Servilletas Kraft Serigrafiadas ICHIN',
-    category: 'empaques_desechables',
-    categoryLabel: 'Empaques & Vasos',
-    currentStock: 10,
-    minStock: 4,
-    unit: 'paquetes',
-    costPerUnit: 5.00,
-    supplier: 'Gráficas Caracas',
-    location: 'Carrito Móvil',
-    lastRestockedDate: '2026-09-06',
-    notes: 'Paquetes de 250 unidades con logo ceremonial',
-    updatedAt: '2026-09-06T12:00:00.000Z',
-  },
-  {
-    id: 'inv-011',
-    sku: 'REP-CK-DDL',
-    name: 'Cookies Rellenas Dulce de Leche',
-    category: 'reposteria',
-    categoryLabel: 'Repostería & Cookies',
-    currentStock: 65,
-    minStock: 25,
-    unit: 'unidades',
-    costPerUnit: 1.80,
-    supplier: 'Taller Dulce AMSI',
-    location: 'Cava / Barra',
-    lastRestockedDate: '2026-09-14',
-    notes: 'Horneadas frescas con centro cremoso de arequipe',
-    updatedAt: '2026-09-14T09:00:00.000Z',
-  },
-  {
-    id: 'inv-012',
-    sku: 'REP-CK-RDV',
-    name: 'Cookies Red Velvet & White Chocolate',
-    category: 'reposteria',
-    categoryLabel: 'Repostería & Cookies',
-    currentStock: 50,
-    minStock: 20,
-    unit: 'unidades',
-    costPerUnit: 1.90,
-    supplier: 'Taller Dulce AMSI',
-    location: 'Cava / Barra',
-    lastRestockedDate: '2026-09-14',
-    notes: 'Con chips belgas de chocolate blanco',
-    updatedAt: '2026-09-14T09:00:00.000Z',
-  },
-  {
-    id: 'inv-013',
-    sku: 'REP-BOM-VIP',
-    name: 'Bombones Artesanales Matcha & Cacao',
-    category: 'reposteria',
-    categoryLabel: 'Repostería & Cookies',
-    currentStock: 22,
-    minStock: 8,
-    unit: 'cajas',
-    costPerUnit: 4.50,
-    supplier: 'Chocolatería de Autor Caracas',
-    location: 'Cava / Barra',
-    lastRestockedDate: '2026-09-13',
-    notes: 'Cajas de 6 bombones de matcha ceremonial y cacao fino',
-    updatedAt: '2026-09-13T16:00:00.000Z',
-  },
-  {
-    id: 'inv-014',
-    sku: 'MRC-CHM-CAR',
-    name: 'Charms Acrílicos de Carrito ICHIN',
-    category: 'merch_accesorios',
-    categoryLabel: 'Merchandising & Barra',
-    currentStock: 85,
-    minStock: 30,
-    unit: 'unidades',
-    costPerUnit: 0.60,
-    supplier: 'Acrílicos y Dijes Laser VE',
-    location: 'Carrito Móvil',
-    lastRestockedDate: '2026-09-08',
-    notes: 'Dijes decorativos de pitillo para personalizar las bebidas',
-    updatedAt: '2026-09-08T14:00:00.000Z',
-  },
-  {
-    id: 'inv-015',
-    sku: 'MRC-CHA-SEN',
-    name: 'Batidores Chasen Bambú Tradicional (100 púas)',
-    category: 'merch_accesorios',
-    categoryLabel: 'Merchandising & Barra',
-    currentStock: 6,
-    minStock: 2,
-    unit: 'unidades',
-    costPerUnit: 12.00,
-    supplier: 'Importación Directa Japón',
-    location: 'Barra Ceremonial',
-    lastRestockedDate: '2026-08-28',
-    notes: 'Batidores tradicionales para batido en vivo en eventos',
-    updatedAt: '2026-08-28T10:00:00.000Z',
-  },
-];
+export const INITIAL_INVENTORY: InventoryItem[] = [];
 
 const LOCAL_INVENTORY_KEY = 'ichin_inventory_items';
 const LOCAL_MOVEMENTS_KEY = 'ichin_inventory_movements';
@@ -637,7 +308,7 @@ export async function obtenerInventario(): Promise<{ data: InventoryItem[]; from
       .select('*')
       .order('name', { ascending: true });
 
-    if (!error && data && data.length > 0) {
+    if (!error && data) {
       const mapped: InventoryItem[] = data.map((d: any) => ({
         id: d.id,
         sku: d.sku || `SKU-${d.id.slice(0, 6)}`,
@@ -669,7 +340,13 @@ export async function obtenerInventario(): Promise<{ data: InventoryItem[]; from
     const local = localStorage.getItem(LOCAL_INVENTORY_KEY);
     if (local) {
       const parsed = JSON.parse(local);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed)) {
+        // Limpiar mock items previos que empezaban con 'inv-00' para iniciar limpio
+        const containsMock = parsed.some((item: any) => item.id && String(item.id).startsWith('inv-00'));
+        if (containsMock) {
+          localStorage.setItem(LOCAL_INVENTORY_KEY, JSON.stringify([]));
+          return { data: [], fromLocal: true };
+        }
         return { data: parsed, fromLocal: true };
       }
     }
@@ -677,12 +354,23 @@ export async function obtenerInventario(): Promise<{ data: InventoryItem[]; from
     console.warn('Error leyendo inventario de localStorage:', err);
   }
 
-  // 3. Fallback inicial
+  // 3. Fallback inicial vacío
   try {
-    localStorage.setItem(LOCAL_INVENTORY_KEY, JSON.stringify(INITIAL_INVENTORY));
+    localStorage.setItem(LOCAL_INVENTORY_KEY, JSON.stringify([]));
   } catch (e) {}
 
-  return { data: INITIAL_INVENTORY, fromLocal: true };
+  return { data: [], fromLocal: true };
+}
+
+/**
+ * Función para vaciar y reiniciar completamente los datos administrativos y de inventario
+ */
+export function vaciarDatosAdministrativos(): void {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('ichin_finanzas_records', JSON.stringify([]));
+    localStorage.setItem('ichin_inventory_items', JSON.stringify([]));
+    localStorage.setItem('ichin_inventory_movements', JSON.stringify([]));
+  }
 }
 
 /**

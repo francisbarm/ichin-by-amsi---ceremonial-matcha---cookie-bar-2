@@ -22,7 +22,8 @@ import {
   obtenerInventario,
   guardarItemInventario,
   actualizarStockItem,
-  eliminarItemInventario
+  eliminarItemInventario,
+  vaciarDatosAdministrativos
 } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 
@@ -156,6 +157,15 @@ export const AdminFinancePanel: React.FC<AdminFinancePanelProps> = ({
     }
     setIsPinUnlocked(false);
     showNotification('Panel de Administradora bloqueado.');
+  };
+
+  const handleResetData = () => {
+    if (window.confirm('¿Deseas vaciar todas las transacciones contables y el catálogo de inventario para dejarlos completamente limpios (sin nada)?')) {
+      vaciarDatosAdministrativos();
+      setTransactions([]);
+      setInventory([]);
+      showNotification('Panel financiero e inventario restablecidos a cero con éxito.');
+    }
   };
 
   // ==========================================
@@ -702,8 +712,17 @@ export const AdminFinancePanel: React.FC<AdminFinancePanelProps> = ({
             </div>
           )}
 
-          {/* Panel Lock & Return controls */}
+          {/* Panel Lock, Reset & Return controls */}
           <div className="flex items-center gap-1.5 pl-2 border-l border-[#D9D0C3]">
+            <button
+              onClick={handleResetData}
+              className="py-2.5 px-3 rounded-full bg-white border border-[#E6DFD4] text-gray-500 hover:text-amber-700 hover:border-amber-200 text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all"
+              title="Vaciar todos los registros para iniciar completamente en cero"
+            >
+              <RefreshCw className="w-3.5 h-3.5 text-[#B69C76]" />
+              <span className="hidden xl:inline">Iniciar en Cero</span>
+            </button>
+
             <button
               onClick={handleLockAdmin}
               className="py-2.5 px-3 rounded-full bg-white border border-[#E6DFD4] text-[#7A8E77] hover:text-red-600 hover:border-red-200 text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all"
@@ -939,8 +958,42 @@ export const AdminFinancePanel: React.FC<AdminFinancePanelProps> = ({
                 Cargando registros contables...
               </div>
             ) : filteredTransactions.length === 0 ? (
-              <div className="p-12 text-center text-xs text-gray-400 space-y-2">
-                <p>No se encontraron movimientos financieros con los filtros seleccionados.</p>
+              <div className="p-8 sm:p-14 text-center space-y-4">
+                <div className="w-14 h-14 mx-auto rounded-full bg-[#EAE5D9] text-[#455546] flex items-center justify-center shadow-inner">
+                  <DollarSign className="w-7 h-7 text-[#B69C76]" />
+                </div>
+                <div className="max-w-md mx-auto">
+                  <h4 className="text-base font-bold text-[#3C4A3C] font-editorial">
+                    Panel Contable Listo y en Blanco
+                  </h4>
+                  <p className="text-xs text-[#6A7869] mt-1.5 leading-relaxed">
+                    Aún no hay ingresos ni gastos registrados. Como administradora puedes comenzar a cargar tus ventas y compras de insumos para calcular la rentabilidad en tiempo real.
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                  <button
+                    onClick={() => {
+                      setTxType('ingreso');
+                      setCategory('evento_boda');
+                      setIsTxModalOpen(true);
+                    }}
+                    className="py-2.5 px-4 rounded-full bg-[#455546] hover:bg-[#384639] text-white text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-sm hover:shadow-md active:scale-95 transition-all"
+                  >
+                    <ArrowUpRight className="w-4 h-4 text-[#B69C76]" />
+                    <span>+ Registrar Primera Venta</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setTxType('gasto');
+                      setCategory('insumos_matcha');
+                      setIsTxModalOpen(true);
+                    }}
+                    className="py-2.5 px-4 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-sm hover:shadow-md active:scale-95 transition-all"
+                  >
+                    <ArrowDownRight className="w-4 h-4" />
+                    <span>+ Registrar Primer Gasto</span>
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -1254,8 +1307,27 @@ export const AdminFinancePanel: React.FC<AdminFinancePanelProps> = ({
                 Cargando inventario de insumos ceremoniales...
               </div>
             ) : filteredInventory.length === 0 ? (
-              <div className="p-12 text-center text-xs text-gray-400 space-y-2">
-                <p>No se encontraron insumos con los filtros aplicados.</p>
+              <div className="p-8 sm:p-14 text-center space-y-4">
+                <div className="w-14 h-14 mx-auto rounded-full bg-[#EAE5D9] text-[#455546] flex items-center justify-center shadow-inner">
+                  <Package className="w-7 h-7 text-[#B69C76]" />
+                </div>
+                <div className="max-w-md mx-auto">
+                  <h4 className="text-base font-bold text-[#3C4A3C] font-editorial">
+                    Inventario Vacío (Sin Insumos Registrados)
+                  </h4>
+                  <p className="text-xs text-[#6A7869] mt-1.5 leading-relaxed">
+                    El catálogo de existencias está completamente limpio. Como administradora, puedes agregar cada tipo de matcha, leches de avena/almendra, vasos PET cristalinos, pitillos o repostería con sus costos y existencias iniciales.
+                  </p>
+                </div>
+                <div className="pt-2">
+                  <button
+                    onClick={() => setIsNewItemModalOpen(true)}
+                    className="py-2.5 px-5 rounded-full bg-[#455546] hover:bg-[#384639] text-white text-xs font-bold uppercase tracking-wider flex items-center gap-2 mx-auto shadow-sm hover:shadow-md active:scale-95 transition-all"
+                  >
+                    <Plus className="w-4 h-4 text-[#B69C76]" />
+                    <span>+ Agregar Primer Insumo al Inventario</span>
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="overflow-x-auto">
