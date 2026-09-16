@@ -55,7 +55,7 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20 gap-3 sm:gap-6">
+        <div className="flex items-center justify-between h-20 sm:h-24 gap-3 sm:gap-6">
           
           {/* Logo */}
           <div className="flex items-center shrink-0">

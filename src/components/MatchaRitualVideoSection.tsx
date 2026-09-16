@@ -15,16 +15,22 @@ export const MatchaRitualVideoSection: React.FC<MatchaRitualVideoSectionProps> =
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   
-  // Fuente del video (por defecto el video local nativo de ICHIN en public/branding)
-  const defaultVideoSrc = '/branding/matcha-ritual-whisking.webm';
+  // Fuentes de video 100% auténticas de MATCHA ceremonial en public/branding
+  const defaultVideoSrc = '/branding/matcha-cinematic-ritual.mp4';
   const [videoSrc, setVideoSrc] = useState<string>(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('ichin_custom_matcha_video') || defaultVideoSrc;
+      const saved = localStorage.getItem('ichin_custom_matcha_video');
+      // Limpiar cualquier residuo previo que no sea el video ceremonial actual o un blob local
+      if (!saved || saved.includes('barista') || saved.includes('coffee') || saved.includes('rustic') || saved.includes('whisking') || saved.includes('tea-ceremony') || saved.includes('latte')) {
+        localStorage.removeItem('ichin_custom_matcha_video');
+        return defaultVideoSrc;
+      }
+      return saved;
     }
     return defaultVideoSrc;
   });
 
-  const [activeTab, setActiveTab] = useState<'official' | 'custom' | 'simulator'>('official');
+  const [activeTab, setActiveTab] = useState<'matcha-ritual' | 'kyoto-plantation' | 'custom' | 'simulator'>('matcha-ritual');
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [customUrlInput, setCustomUrlInput] = useState('');
@@ -60,6 +66,20 @@ export const MatchaRitualVideoSection: React.FC<MatchaRitualVideoSectionProps> =
     if (!videoRef.current) return;
     if (videoRef.current.requestFullscreen) {
       videoRef.current.requestFullscreen();
+    }
+  };
+
+  // Cambiar entre presets auténticos de MATCHA
+  const handleSelectPreset = (presetKey: 'matcha-ritual' | 'kyoto-plantation') => {
+    const src = presetKey === 'matcha-ritual'
+      ? '/branding/matcha-cinematic-ritual.mp4'
+      : '/branding/kyoto-tea-plantation.mp4';
+    setVideoSrc(src);
+    setActiveTab(presetKey);
+    setIsPlaying(false);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('ichin_custom_matcha_video');
+      localStorage.removeItem('ichin_custom_video_name');
     }
   };
 
@@ -112,23 +132,6 @@ export const MatchaRitualVideoSection: React.FC<MatchaRitualVideoSectionProps> =
     }, 1200);
   };
 
-  // Restaurar video oficial nativo de ICHIN
-  const handleResetToOfficial = () => {
-    setVideoSrc(defaultVideoSrc);
-    setActiveTab('official');
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('ichin_custom_matcha_video');
-      localStorage.removeItem('ichin_custom_video_name');
-    }
-    setUploadSuccessNotice('Restaurado el video ceremonial nativo de ICHIN.');
-    setTimeout(() => {
-      setUploadSuccessNotice(null);
-      if (videoRef.current) {
-        videoRef.current.load();
-      }
-    }, 1200);
-  };
-
   // Lógica del cronómetro del simulador
   useEffect(() => {
     let interval: any = null;
@@ -156,7 +159,7 @@ export const MatchaRitualVideoSection: React.FC<MatchaRitualVideoSectionProps> =
       title: 'El Tamizado Sagrado',
       subtitle: '2g con Chashaku de bambú',
       detail: 'El matcha ceremonial de primera cosecha genera estática natural que forma microgrumos. Pasarlo por el tamiz de malla fina antes del agua garantiza que cada partícula se hidrate de manera uniforme.',
-      tip: 'Regla: 2 cucharadas curvas de bambú (aprox. 1 cucharadita de café rasa).',
+      tip: 'Regla: 2 cucharadas curvas de bambú (aprox. 2g exactos de matcha ceremonial puro).',
       icon: '🍃',
     },
     {
@@ -180,7 +183,7 @@ export const MatchaRitualVideoSection: React.FC<MatchaRitualVideoSectionProps> =
       title: 'La Microespuma de Jade',
       subtitle: 'El cierre ceremonial',
       detail: 'Cuando la superficie esté colmada de una densa capa verde esmeralda, desacelera dibujando una "O" suave en el centro para disolver las burbujas grandes y retirar el batidor con reverencia.',
-      tip: 'Resultado: Crema espesa, uniforme y sedosa como la de un espresso de especialidad.',
+      tip: 'Resultado: Crema de jade espesa, uniforme y sedosa, la emblemática espuma ceremonial.',
       icon: '✨',
     },
   ];
@@ -230,24 +233,36 @@ export const MatchaRitualVideoSection: React.FC<MatchaRitualVideoSectionProps> =
           </div>
         )}
 
-        {/* Pestañas de Control de Video: Oficial vs Subir Video Propio vs Simulador */}
+        {/* Pestañas de Control de Video: Ritual Matcha Uji vs Plantaciones Kioto vs Subir Video Propio vs Simulador */}
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="inline-flex p-1 bg-[#2C372D] rounded-2xl border border-[#4D5D4E]">
+          <div className="inline-flex flex-wrap p-1 bg-[#2C372D] rounded-2xl border border-[#4D5D4E] gap-1">
             <button
-              onClick={handleResetToOfficial}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-                activeTab === 'official'
+              onClick={() => handleSelectPreset('matcha-ritual')}
+              className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                activeTab === 'matcha-ritual'
                   ? 'bg-[#FAF8F4] text-[#364437] shadow-sm'
                   : 'text-[#FAF8F4]/80 hover:text-white'
               }`}
             >
               <Video className="w-3.5 h-3.5 text-[#B69C76]" />
-              <span>Video Nativo ICHIN by/ Amsi</span>
+              <span>Ritual Matcha Uji HD</span>
+            </button>
+
+            <button
+              onClick={() => handleSelectPreset('kyoto-plantation')}
+              className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                activeTab === 'kyoto-plantation'
+                  ? 'bg-[#FAF8F4] text-[#364437] shadow-sm'
+                  : 'text-[#FAF8F4]/80 hover:text-white'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-[#B69C76]" />
+              <span>Plantaciones Kioto HD</span>
             </button>
 
             <button
               onClick={() => setActiveTab('custom')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+              className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
                 activeTab === 'custom'
                   ? 'bg-[#FAF8F4] text-[#364437] shadow-sm'
                   : 'text-[#FAF8F4]/80 hover:text-white'
@@ -259,14 +274,14 @@ export const MatchaRitualVideoSection: React.FC<MatchaRitualVideoSectionProps> =
 
             <button
               onClick={() => setActiveTab('simulator')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+              className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
                 activeTab === 'simulator'
                   ? 'bg-[#FAF8F4] text-[#364437] shadow-sm'
                   : 'text-[#FAF8F4]/80 hover:text-white'
               }`}
             >
               <Clock className="w-3.5 h-3.5 text-[#B69C76]" />
-              <span>Simulador de Batido (15s)</span>
+              <span>Simulador (15s)</span>
             </button>
           </div>
 
@@ -361,6 +376,7 @@ export const MatchaRitualVideoSection: React.FC<MatchaRitualVideoSectionProps> =
               <div className="relative rounded-3xl overflow-hidden bg-black aspect-video border-2 border-[#D4BE9B]/50 shadow-2xl group">
                 <video
                   ref={videoRef}
+                  key={videoSrc}
                   src={videoSrc}
                   poster="/branding/matcha-station-aesthetic.jpg"
                   playsInline
@@ -404,7 +420,11 @@ export const MatchaRitualVideoSection: React.FC<MatchaRitualVideoSectionProps> =
                     </button>
 
                     <span className="text-[11px] text-white/80 font-medium hidden sm:inline">
-                      {activeTab === 'custom' ? 'Video Personalizado ICHIN by/ Amsi' : 'Ritual Ceremonial de Batido ICHIN by/ Amsi'}
+                      {activeTab === 'custom' 
+                        ? 'Video Personalizado ICHIN by/ Amsi' 
+                        : activeTab === 'kyoto-plantation' 
+                        ? 'Plantaciones de Té Verde en Kioto, Japón • Origen del Matcha' 
+                        : 'Ritual Ceremonial de Matcha • Grado Uji / Kioto'}
                     </span>
                   </div>
 
@@ -425,7 +445,11 @@ export const MatchaRitualVideoSection: React.FC<MatchaRitualVideoSectionProps> =
             <div className="p-4 sm:p-5 rounded-2xl bg-[#2C372D] border border-[#4D5D4E] space-y-2">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#D4BE9B] text-[#2C2216]">
-                  {activeTab === 'custom' ? 'Video de la Dueña / Administradora' : 'Técnica Oficial ICHIN by/ Amsi'}
+                  {activeTab === 'custom' 
+                    ? 'Video Propio de la Administradora' 
+                    : activeTab === 'kyoto-plantation' 
+                    ? 'Origen: Terrazas de Kioto, Japón' 
+                    : 'Ceremonia Tradicional del Matcha Puro'}
                 </span>
                 <span className="text-[11px] text-[#D4BE9B] font-medium flex items-center gap-1">
                   <Clock className="w-3.5 h-3.5" />
@@ -435,19 +459,29 @@ export const MatchaRitualVideoSection: React.FC<MatchaRitualVideoSectionProps> =
 
               <h3 className="text-lg font-bold text-white font-editorial">
                 {activeTab === 'custom'
-                  ? 'Video Propio de Preparación en Vivo'
-                  : 'Batido Firme con Chasen de Bambú: Cero Grumos, Pura Microespuma'}
+                  ? 'Video Propio de la Administradora'
+                  : activeTab === 'kyoto-plantation'
+                  ? 'El Origen Sagrado: Plantaciones de Té Verde en Kioto'
+                  : 'El Sagrado Ritual del Chasen: Ceremonia Japonesa Auténtica'}
               </h3>
 
               <p className="text-xs text-[#FAF8F4]/80 leading-relaxed">
                 {activeTab === 'custom'
-                  ? 'Este es tu video propio cargado para ICHIN by/ Amsi. Puedes reemplazarlo en cualquier momento desde tu teléfono o computadora cuando filmes nuevo contenido en tus eventos de Caracas.'
-                  : 'Observa la suspensión de los 100 filamentos de bambú blanco justo bajo la superficie para inyectar microburbujas densas en movimiento lineal "W" a 80°C. La muñeca se mantiene suelta y enérgica sin mover el hombro ni raspar el cuenco.'}
+                  ? 'Este es tu video propio cargado para ICHIN by/ Amsi. Puedes reemplazarlo en cualquier momento desde tu teléfono o computadora cuando filmes nuevo contenido de tu carrito en tus eventos de Caracas.'
+                  : activeTab === 'kyoto-plantation'
+                  ? 'Vuelo panorámico sobre las colinas y terrazas verdes de Kioto donde se cultivan las hojas de Tencha sombreadas a mano, origen del té matcha ceremonial de máxima pureza que llevamos a cada celebración.'
+                  : 'Observa la maestría ancestral del Chado: el agua vertida con hishaku sobre el chawan, las medidas exactas de matcha ceremonial Uji con chashaku de bambú, y el batido enérgico con el chasen hasta coronar la auténtica microespuma de jade. 100% té matcha ceremonial japonés, sin atajos ni adulteraciones.'}
               </p>
 
               <div className="pt-2 border-t border-white/10 flex items-start gap-2 text-xs text-[#D4BE9B]">
                 <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5 text-[#D4BE9B]" />
-                <span className="font-semibold">Regla de oro: <span className="text-white/90 font-normal">Muñeca libre y firme, agua a 80°C exactos y emulsión en 'W' durante 15 segundos.</span></span>
+                <span className="font-semibold">
+                  {activeTab === 'kyoto-plantation'
+                    ? 'Regla de oro: Cosecha seleccionada a mano, secada y molida lentamente en molinos de granito de piedra.'
+                    : activeTab === 'custom'
+                    ? 'Regla de oro de ICHIN by/ Amsi: Transmite la elegancia y hospitalidad japonesa en tus eventos de Caracas.'
+                    : 'Regla de oro de ICHIN by/ Amsi: Matcha ceremonial puro batido en vivo con chasen de bambú ante cada invitado.'}
+                </span>
               </div>
             </div>
 

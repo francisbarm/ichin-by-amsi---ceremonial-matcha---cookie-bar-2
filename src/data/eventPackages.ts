@@ -86,47 +86,4 @@ export const EVENT_PACKAGES: EventPackage[] = [
   },
 ];
 
-export const INITIAL_BOOKINGS: BookingRecord[] = [
-  {
-    id: 'bk-01',
-    code: 'ICH-2490',
-    clientName: 'Valeria & Rodrigo',
-    eventType: 'Boda de Ensueño',
-    date: '14 Octubre 2026',
-    zone: 'Altamira / Country Club',
-    packageTitle: 'Ceremonial Luxury Bar',
-    guests: 85,
-    totalUsd: 820,
-    status: 'confirmed',
-    statusLabel: 'Confirmado',
-    createdAt: 'Hace 2 días',
-  },
-  {
-    id: 'bk-02',
-    code: 'ICH-2491',
-    clientName: 'Maison Bohème Store',
-    eventType: 'Brand Activation / Lanzamiento',
-    date: '28 Septiembre 2026',
-    zone: 'Las Mercedes',
-    packageTitle: 'Gran Activación Matcha & Bakery',
-    guests: 130,
-    totalUsd: 1680,
-    status: 'in_prep',
-    statusLabel: 'En Preparación',
-    createdAt: 'Ayer a las 16:20',
-  },
-  {
-    id: 'bk-03',
-    code: 'ICH-2492',
-    clientName: 'Camila Villasmil',
-    eventType: 'Cumpleaños VIP & Garden Brunch',
-    date: '05 Noviembre 2026',
-    zone: 'El Hatillo / La Lagunita',
-    packageTitle: 'Paquete Esencial Green',
-    guests: 35,
-    totalUsd: 360,
-    status: 'pending',
-    statusLabel: 'En Revisión',
-    createdAt: 'Hoy a las 11:15',
-  },
-];
+export const INITIAL_BOOKINGS: BookingRecord[] = [];

@@ -209,30 +209,36 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
             </div>
           )}
 
-          {/* Empty state if filtered user has no bookings */}
+          {/* Empty state if no bookings exist */}
           {displayBookings.length === 0 && (
-            <div className="p-8 text-center bg-white rounded-3xl border border-[#E6DFD4] space-y-3">
-              <div className="w-12 h-12 rounded-full bg-[#FAF8F4] border border-[#E6DFD4] flex items-center justify-center mx-auto text-[#7A8E77]">
-                <Calendar className="w-6 h-6" />
+            <div className="p-8 sm:p-12 text-center bg-white rounded-3xl border border-[#E6DFD4] space-y-4 shadow-sm">
+              <div className="w-14 h-14 rounded-full bg-[#FAF8F4] border border-[#E6DFD4] flex items-center justify-center mx-auto text-[#7A8E77]">
+                <Calendar className="w-7 h-7" />
               </div>
-              <h3 className="font-bold text-sm text-[#3C4A3C]">No se encontraron reservas con tu correo</h3>
-              <p className="text-xs text-[#6A7869] max-w-sm mx-auto">
-                No tienes solicitudes registradas bajo <strong>{user?.email}</strong>. Puedes cotizar un evento en 2 minutos para verlo aquí.
-              </p>
-              <div className="flex justify-center gap-2 pt-2">
+              <div className="space-y-1">
+                <h3 className="font-bold text-base text-[#3C4A3C] font-editorial">
+                  {filterOnlyMine ? 'No tienes reservas con tu cuenta' : 'Bandeja de Reservas Vacía'}
+                </h3>
+                <p className="text-xs text-[#6A7869] max-w-md mx-auto leading-relaxed">
+                  {filterOnlyMine 
+                    ? `No tienes solicitudes registradas bajo ${user?.email || 'tu cuenta'}. Puedes cotizar un evento para verlo aquí.`
+                    : 'Todavía no hay reservas registradas. Cuando un cliente o tú coticen un evento desde la web, aparecerá aquí en tiempo real para gestionar su estado y preparación.'}
+                </p>
+              </div>
+              <div className="flex flex-wrap justify-center gap-2 pt-2">
                 {filterOnlyMine && (
                   <button
                     onClick={() => setFilterOnlyMine(false)}
-                    className="py-2 px-4 rounded-full border border-[#E6DFD4] text-xs font-bold text-[#3C4A3C] hover:bg-[#FAF8F4]"
+                    className="py-2 px-4 rounded-full border border-[#E6DFD4] text-xs font-bold text-[#3C4A3C] hover:bg-[#FAF8F4] transition-all"
                   >
-                    Ver Todo el Historial
+                    Ver Todo
                   </button>
                 )}
                 <button
                   onClick={onNewQuoteClick}
-                  className="py-2 px-4 rounded-full bg-[#455546] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#384639]"
+                  className="py-2.5 px-6 rounded-full bg-[#455546] hover:bg-[#384639] text-white text-xs font-bold uppercase tracking-wider transition-all shadow-sm"
                 >
-                  Cotizar Ahora
+                  Cotizar Primer Evento
                 </button>
               </div>
             </div>
@@ -320,9 +326,9 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
           )}
         </div>
 
-        {/* Selected Booking Digital Ticket (5 Cols) */}
-        {currentSelected && (
-          <div className="lg:col-span-5 sticky top-24">
+        {/* Selected Booking Digital Ticket (5 Cols) or Empty Placeholder */}
+        <div className="lg:col-span-5 sticky top-24">
+          {currentSelected ? (
             <div className="bg-white rounded-3xl border border-[#E6DFD4] shadow-lg overflow-hidden">
               
               {/* Ticket Header */}
@@ -427,9 +433,7 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
                 {/* Database Retention Stamp */}
                 <div className="flex items-center gap-2 bg-[#455546]/10 px-3 py-2 rounded-xl border border-[#455546]/20 text-[11px] text-[#3C4A3C]">
                   <Database className="w-3.5 h-3.5 text-[#7A8E77] shrink-0" />
-                  <span>
-                    Guardado en Base de Datos Supabase (tabla <strong className="font-mono text-[10px]">ichin_cotizaciones</strong>)
-                  </span>
+                  <span>Reserva sincronizada en Supabase CRM</span>
                 </div>
 
                 {/* Milestone Tracker */}
@@ -493,8 +497,22 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
               </div>
 
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="bg-white rounded-3xl border border-dashed border-[#E6DFD4] p-8 sm:p-10 text-center space-y-4 shadow-2xs">
+              <div className="w-14 h-14 rounded-2xl bg-[#FAF8F4] border border-[#E6DFD4] flex items-center justify-center mx-auto text-[#7A8E77]">
+                <QrCode className="w-7 h-7" />
+              </div>
+              <div className="space-y-1.5">
+                <h4 className="font-bold text-sm text-[#3C4A3C] font-editorial uppercase tracking-wider">
+                  Comprobante Digital
+                </h4>
+                <p className="text-xs text-[#75786E] max-w-xs mx-auto leading-relaxed">
+                  Cuando selecciones o se cree una nueva reserva para tu carrito de eventos, aquí se emitirá en tiempo real el ticket oficial con su código de pase digital.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
 
       </div>
 
