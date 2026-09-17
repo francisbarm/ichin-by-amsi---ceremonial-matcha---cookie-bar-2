@@ -14,7 +14,7 @@ export const MobileQrModal: React.FC<MobileQrModalProps> = ({ isOpen, onClose })
 
   // Local IP & Direct Cloudflare HTTPS Link (No Interstitial Warning)
   const localUrl = 'http://172.31.0.228:3000';
-  const tunnelUrl = 'https://tribal-individuals-doc-shut.trycloudflare.com';
+  const tunnelUrl = 'https://clan-tab-important-biz.trycloudflare.com';
   const activeUrl = connMode === 'tunnel' ? tunnelUrl : localUrl;
   const qrImageSrc = connMode === 'tunnel' ? '/branding/qr-mobile-preview.png' : '/branding/qr-local-preview.png';
 
