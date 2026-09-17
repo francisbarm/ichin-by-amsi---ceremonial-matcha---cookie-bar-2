@@ -156,6 +156,9 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
       ? 65
       : 0;
 
+  // Personalización de Bebidas con Charms 3D ($1/invitado)
+  const charmsCost = quoteState.drinkCharmsCustomization ? quoteState.guestCount * 1.0 : 0;
+
   const subtotal =
     basePrice +
     extraHoursCost +
@@ -214,9 +217,9 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
       : '';
 
     const addonsList = [
-      quoteState.includeCookies ? `Cookies artesanales (${selectedPkg.cookieCount})` : '',
-      quoteState.coldFoamBar ? 'Barra de Espumas Frías' : '',
-      quoteState.signatureDrink ? 'Bebida de Autor Exclusiva' : '',
+      quoteState.includeArtisanalCookies ? `Cookies artesanales (${selectedPkg.includedCookies})` : '',
+      quoteState.matchaColdFoamStation ? 'Barra de Espumas Frías' : '',
+      quoteState.signatureDrinkCreated ? 'Bebida de Autor Exclusiva' : '',
       quoteState.customBrandedCups ? 'Vasos Personalizados con Logo' : '',
       furnitureText ? `Mobiliario: ${furnitureText}` : '',
       charmsText ? charmsText : '',
@@ -232,13 +235,13 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
       lugar_evento: quoteState.locationZone,
       numero_invitados: quoteState.guestCount,
       paquete_nombre: selectedPkg.name,
-      tipo_montaje: quoteState.setupColorTheme || 'Barra Estándar',
+      tipo_montaje: 'Barra Ceremonial Estándar',
       adicionales: addonsList,
       notas_adicionales: `Frase en pizarra: "${quoteState.customSignagePhrase}". Código: ${bookingCode}`,
       resumen_items: {
         codigo: bookingCode,
         totalUsd: grandTotal,
-        bebidasBase: selectedPkg.drinksCount,
+        bebidasBase: selectedPkg.includedDrinks,
         horas: quoteState.serviceHours,
         opcionVasos: quoteState.cupOption,
         mobiliario: quoteState.terraceFurniture || 'ninguno',
@@ -316,9 +319,9 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
       : '';
 
     const addonsList = [
-      quoteState.includeCookies ? `Cookies artesanales (${selectedPkg.cookieCount})` : '',
-      quoteState.coldFoamBar ? 'Barra de Espumas Frías' : '',
-      quoteState.signatureDrink ? 'Bebida de Autor Exclusiva' : '',
+      quoteState.includeArtisanalCookies ? `Cookies artesanales (${selectedPkg.includedCookies})` : '',
+      quoteState.matchaColdFoamStation ? 'Barra de Espumas Frías' : '',
+      quoteState.signatureDrinkCreated ? 'Bebida de Autor Exclusiva' : '',
       quoteState.customBrandedCups ? 'Vasos Personalizados con Logo' : '',
       furnitureText ? `Mobiliario: ${furnitureText}` : '',
       charmsText ? charmsText : '',
@@ -334,14 +337,14 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
       lugar_evento: quoteState.locationZone,
       numero_invitados: quoteState.guestCount,
       paquete_nombre: selectedPkg.name,
-      tipo_montaje: quoteState.setupColorTheme || 'Barra Estándar',
+      tipo_montaje: 'Barra Ceremonial Estándar',
       adicionales: addonsList,
       notas_adicionales: `Solicitud por Correo Electrónico. Pizarra: "${quoteState.customSignagePhrase || 'GOOD HABITS, BETTER DAYS ♡'}". Código: ${bookingCode}`,
       resumen_items: {
         codigo: bookingCode,
         totalUsd: grandTotal,
         canal: 'email_solicitud',
-        bebidasBase: selectedPkg.drinksCount,
+        bebidasBase: selectedPkg.includedDrinks,
         horas: quoteState.serviceHours,
         opcionVasos: quoteState.cupOption,
         mobiliario: quoteState.terraceFurniture || 'ninguno',
@@ -359,7 +362,7 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
       eventDate: quoteState.eventDate,
       eventTime: quoteState.eventTime,
       locationZone: quoteState.locationZone,
-      setupTheme: quoteState.setupColorTheme,
+      setupTheme: 'Barra Ceremonial Estándar',
       terraceFurniture: furnitureText || undefined,
       drinkCharms: charmsText || undefined,
       addons: addonsList,
@@ -451,11 +454,11 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
       lugar_evento: quoteState.locationZone,
       numero_invitados: quoteState.guestCount,
       paquete_nombre: selectedPkg.name,
-      tipo_montaje: quoteState.setupColorTheme || 'Barra Estándar',
+      tipo_montaje: 'Barra Ceremonial Estándar',
       adicionales: [
-        quoteState.includeCookies ? `Cookies artesanales (${selectedPkg.cookieCount})` : '',
-        quoteState.coldFoamBar ? 'Barra de Espumas Frías' : '',
-        quoteState.signatureDrink ? 'Bebida de Autor Exclusiva' : '',
+        quoteState.includeArtisanalCookies ? `Cookies artesanales (${selectedPkg.includedCookies})` : '',
+        quoteState.matchaColdFoamStation ? 'Barra de Espumas Frías' : '',
+        quoteState.signatureDrinkCreated ? 'Bebida de Autor Exclusiva' : '',
         quoteState.customBrandedCups ? 'Vasos Personalizados con Logo' : '',
         furnitureText ? `Mobiliario: ${furnitureText}` : '',
         charmsText ? charmsText : '',
@@ -463,7 +466,8 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
       notas_adicionales: `Contacto WhatsApp Directo. Pizarra: "${quoteState.customSignagePhrase || 'GOOD HABITS, BETTER DAYS ♡'}"`,
       resumen_items: {
         tipo: 'whatsapp_directo',
-        bebidas: selectedPkg.drinksCount,
+        totalUsd: grandTotal,
+        bebidas: selectedPkg.includedDrinks,
         mobiliario: quoteState.terraceFurniture || 'ninguno',
         charms: quoteState.drinkCharmsCustomization ? quoteState.drinkCharmsTheme : 'no',
       },
