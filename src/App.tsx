@@ -17,6 +17,7 @@ import { MobileQrModal } from './components/MobileQrModal';
 import { AuthModal } from './components/AuthModal';
 import { Footer } from './components/Footer';
 import { AuthProvider } from './context/AuthContext';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 export default function App() {
   return (
@@ -126,55 +127,57 @@ function MainApp() {
 
       {/* Main Screen Body */}
       <main className="flex-1">
-        {currentScreen === 'menu' && (
-          <MenuScreen
-            onAddToCart={handleAddToCart}
-            onOpenCart={() => setIsCartOpen(true)}
-            cartCount={totalCartCount}
-            onGoToQuoterWithPackage={handleGoToQuoterWithPackage}
-          />
-        )}
+        <ErrorBoundary>
+          {currentScreen === 'menu' && (
+            <MenuScreen
+              onAddToCart={handleAddToCart}
+              onOpenCart={() => setIsCartOpen(true)}
+              cartCount={totalCartCount}
+              onGoToQuoterWithPackage={handleGoToQuoterWithPackage}
+            />
+          )}
 
-        {currentScreen === 'quoter' && (
-          <EventQuoterScreen
-            onQuoteSubmitted={handleQuoteSubmitted}
-            initialQuoteParams={initialQuoteParams}
-          />
-        )}
+          {currentScreen === 'quoter' && (
+            <EventQuoterScreen
+              onQuoteSubmitted={handleQuoteSubmitted}
+              initialQuoteParams={initialQuoteParams}
+            />
+          )}
 
-        {currentScreen === 'cart-showcase' && (
-          <CartShowcaseScreen
-            onGoToQuoter={() => {
-              setCurrentScreen('quoter');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            onGoToMenu={() => {
-              setCurrentScreen('menu');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-          />
-        )}
+          {currentScreen === 'cart-showcase' && (
+            <CartShowcaseScreen
+              onGoToQuoter={() => {
+                setCurrentScreen('quoter');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              onGoToMenu={() => {
+                setCurrentScreen('menu');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+            />
+          )}
 
-        {currentScreen === 'orders' && (
-          <OrdersScreen
-            bookings={bookings}
-            activeOrders={cartItems}
-            onNewQuoteClick={() => {
-              setCurrentScreen('quoter');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-          />
-        )}
+          {currentScreen === 'orders' && (
+            <OrdersScreen
+              bookings={bookings}
+              activeOrders={cartItems}
+              onNewQuoteClick={() => {
+                setCurrentScreen('quoter');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+            />
+          )}
 
-        {currentScreen === 'admin-finance' && (
-          <AdminFinancePanel
-            onBackToMenu={() => {
-              setCurrentScreen('menu');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            onOpenAuth={() => setIsAuthModalOpen(true)}
-          />
-        )}
+          {currentScreen === 'admin-finance' && (
+            <AdminFinancePanel
+              onBackToMenu={() => {
+                setCurrentScreen('menu');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              onOpenAuth={() => setIsAuthModalOpen(true)}
+            />
+          )}
+        </ErrorBoundary>
       </main>
 
       {/* Slide-over Shopping Cart */}

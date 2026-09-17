@@ -260,7 +260,7 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
         eventDate: quoteState.eventDate,
         eventTime: quoteState.eventTime,
         locationZone: quoteState.locationZone,
-        setupTheme: quoteState.setupColorTheme,
+        setupTheme: 'Barra Ceremonial Estándar',
         terraceFurniture: furnitureText || undefined,
         drinkCharms: charmsText || undefined,
         addons: addonsList,
@@ -488,6 +488,7 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
       cupOptionLabel: cupLabel,
       terraceFurnitureLabel: furnitureText || undefined,
       charmsCustomizationLabel: charmsText || undefined,
+      totalUsd: grandTotal,
     });
   };
 
@@ -1637,12 +1638,13 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
                   <span className="text-xs uppercase tracking-wider text-[#D4BE9B] font-bold">
                     Presupuesto del Evento
                   </span>
-                  <span className="text-xl sm:text-2xl font-black text-white" style={{ fontFamily: 'Plus Jakarta Sans' }}>
-                    Cotización a Medida
+                  <span className="text-xl sm:text-2xl font-black text-white font-editorial">
+                    ${grandTotal.toLocaleString()}{' '}
+                    <span className="text-xs font-sans text-[#7A8E77]">USD</span>
                   </span>
                 </div>
                 <div className="text-[10px] text-gray-300 mt-1">
-                  Consulta disponibilidad y propuesta personalizada vía WhatsApp directo.
+                  Propuesta completa con barra ceremonial, personalización y mobiliario.
                 </div>
               </div>
 
