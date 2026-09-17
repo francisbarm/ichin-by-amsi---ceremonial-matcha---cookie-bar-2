@@ -12,9 +12,9 @@ export const MobileQrModal: React.FC<MobileQrModalProps> = ({ isOpen, onClose })
 
   if (!isOpen) return null;
 
-  // Local IP & Active Public HTTPS Tunnel
+  // Local IP & Direct Cloudflare HTTPS Link (No Interstitial Warning)
   const localUrl = 'http://172.31.0.228:3000';
-  const tunnelUrl = 'https://reverence-dart-iguana.ngrok-free.dev';
+  const tunnelUrl = 'https://tribal-individuals-doc-shut.trycloudflare.com';
   const activeUrl = connMode === 'tunnel' ? tunnelUrl : localUrl;
   const qrImageSrc = connMode === 'tunnel' ? '/branding/qr-mobile-preview.png' : '/branding/qr-local-preview.png';
 
@@ -27,11 +27,9 @@ export const MobileQrModal: React.FC<MobileQrModalProps> = ({ isOpen, onClose })
   const handleSendWhatsApp = () => {
     const text = encodeURIComponent(
       `🍵 *ICHIN by/ Amsi — Ceremonial Matcha & Cookie Bar*\n\n` +
-      `Aquí tienes los accesos directos para probar la app en tu celular:\n\n` +
-      `🌐 *Opción 1 (Datos Móviles 4G / Wi-Fi):*\n${tunnelUrl}\n` +
-      `_(Si aparece una pantalla azul de verificación, presiona el botón "Visit Site")_\n\n` +
-      `📶 *Opción 2 (Misma red Wi-Fi de la oficina/casa):*\n${localUrl}\n\n` +
-      `✨ Bar de matcha ceremonial japonés para eventos exclusivos en Caracas.`
+      `¡Hola! Te comparto el enlace directo a nuestra web interactiva:\n\n` +
+      `👉 ${tunnelUrl}\n\n` +
+      `✨ Bar de matcha ceremonial japonés y pastelería fina para eventos exclusivos en Caracas.`
     );
     window.open(`https://wa.me/584143260003?text=${text}`, '_blank');
   };
@@ -112,9 +110,9 @@ export const MobileQrModal: React.FC<MobileQrModalProps> = ({ isOpen, onClose })
         {/* Guía Importante si está en modo túnel */}
         {connMode === 'tunnel' && (
           <div className="w-full bg-[#EAE5D9]/70 p-2.5 rounded-xl border border-[#DDD5C3] text-[11px] text-[#455546] text-left mb-3 flex items-start gap-2">
-            <span className="text-base leading-none">💡</span>
+            <span className="text-base leading-none">✨</span>
             <p className="leading-snug">
-              Al abrir en tu teléfono, si ves una pantalla de verificación de ngrok, presiona el botón azul <strong className="text-[#364437] underline font-bold">&quot;Visit Site&quot;</strong> para entrar directamente a la app.
+              Conexión directa global vía <strong className="text-[#364437] font-bold">Cloudflare CDN</strong>. Abre directamente sin pantallas intermedias ni advertencias.
             </p>
           </div>
         )}
