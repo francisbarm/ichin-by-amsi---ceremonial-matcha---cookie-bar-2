@@ -178,6 +178,8 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
       id: `bk-${Date.now()}`,
       code: bookingCode,
       clientName: quoteState.clientName.trim() || 'Cliente Distinguido',
+      clientEmail: quoteState.clientEmail.trim() || undefined,
+      clientPhone: quoteState.clientPhone.trim() || undefined,
       eventType: quoteState.eventType,
       date: quoteState.eventDate,
       zone: quoteState.locationZone,
@@ -235,6 +237,7 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
       notas_adicionales: `Frase en pizarra: "${quoteState.customSignagePhrase}". Código: ${bookingCode}`,
       resumen_items: {
         codigo: bookingCode,
+        totalUsd: grandTotal,
         bebidasBase: selectedPkg.drinksCount,
         horas: quoteState.serviceHours,
         opcionVasos: quoteState.cupOption,
@@ -336,6 +339,7 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
       notas_adicionales: `Solicitud por Correo Electrónico. Pizarra: "${quoteState.customSignagePhrase || 'GOOD HABITS, BETTER DAYS ♡'}". Código: ${bookingCode}`,
       resumen_items: {
         codigo: bookingCode,
+        totalUsd: grandTotal,
         canal: 'email_solicitud',
         bebidasBase: selectedPkg.drinksCount,
         horas: quoteState.serviceHours,

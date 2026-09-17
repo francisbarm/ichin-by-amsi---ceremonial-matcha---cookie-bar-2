@@ -472,22 +472,43 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
                 <div className="flex items-center justify-between text-xs text-[#3C4A3C] font-semibold pt-1">
                   <span>{b.packageTitle} ({b.guests} personas)</span>
                   <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedBooking(b);
-                        setIsBudgetModalOpen(true);
-                      }}
-                      className="px-2.5 py-1 rounded-full bg-[#455546]/10 text-[#455546] hover:bg-[#455546] hover:text-white transition-all text-[11px] font-bold flex items-center gap-1 cursor-pointer"
-                    >
-                      <FileText className="w-3 h-3" />
-                      <span>Presupuesto</span>
-                    </button>
                     <span className="text-[#B69C76] flex items-center gap-0.5 hover:underline">
                       Ver Ticket <ChevronRight className="w-3.5 h-3.5" />
                     </span>
                   </div>
+                </div>
+
+                {/* BOTÓN RÁPIDO DE RESPUESTA DIRECTO EN CADA TARJETA */}
+                <div className="mt-3 pt-3 border-t border-[#F3EFE7] flex flex-wrap items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedBooking(b);
+                      const text = getWhatsAppMessage(b);
+                      const phone = cleanPhoneForWhatsApp(b.clientPhone) || '584143260003';
+                      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
+                    }}
+                    className="flex-1 min-w-[210px] py-2.5 px-3.5 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white text-xs font-bold flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer active:scale-98"
+                    title={`Responder inmediatamente por WhatsApp a ${b.clientName}`}
+                  >
+                    <MessageCircle className="w-4 h-4 fill-current" />
+                    <span>Responder Presupuesto (${(b.totalUsd || 1135).toLocaleString()} USD)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedBooking(b);
+                      setIsBudgetModalOpen(true);
+                    }}
+                    className="py-2.5 px-3.5 rounded-xl bg-[#455546] hover:bg-[#384639] text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                    title="Ver desglose y PDF formal"
+                  >
+                    <FileText className="w-3.5 h-3.5 text-[#D4BE9B]" />
+                    <span>Ver PDF</span>
+                  </button>
                 </div>
               </div>
             );
@@ -542,6 +563,7 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
 
               {/* Ticket Body */}
               <div className="p-6 space-y-4">
+                {/* Código Ticket & Estado */}
                 <div className="flex items-center justify-between border-b border-[#F3EFE7] pb-3">
                   <div>
                     <span className="text-[10px] text-gray-400 uppercase font-bold">Código Ticket</span>
@@ -570,112 +592,50 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
                   </div>
                 </div>
 
-                <div className="space-y-2 text-xs">
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Titular del Evento:</span>
-                    <span className="font-bold text-[#3C4A3C]">{currentSelected.clientName}</span>
-                  </div>
-
-                  {currentSelected.clientEmail && (
-                    <div className="flex justify-between items-center bg-[#FAF8F4] px-2.5 py-1.5 rounded-xl border border-[#E6DFD4]">
-                      <span className="text-gray-500 flex items-center gap-1 text-[11px]">
-                        <Mail className="w-3 h-3 text-[#7A8E77]" /> Correo:
-                      </span>
-                      <a
-                        href={`mailto:${currentSelected.clientEmail}?subject=${encodeURIComponent(`Cotización ICHIN By AMSI - Reserva ${currentSelected.code}`)}`}
-                        className="font-bold text-[#455546] hover:underline text-[11px] truncate max-w-[200px]"
-                        title="Responder por correo al cliente"
-                      >
-                        {currentSelected.clientEmail}
-                      </a>
-                    </div>
-                  )}
-
-                  {currentSelected.clientPhone && (
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="text-gray-500 flex items-center gap-1">
-                        <Phone className="w-3 h-3 text-[#7A8E77]" /> Teléfono:
-                      </span>
-                      <span className="font-semibold text-[#3C4A3C]">{currentSelected.clientPhone}</span>
-                    </div>
-                  )}
-
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Tipo de Celebración:</span>
-                    <span className="font-bold text-[#3C4A3C]">{currentSelected.eventType}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Fecha del Servicio:</span>
-                    <span className="font-bold text-[#3C4A3C]">{currentSelected.date}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Locación:</span>
-                    <span className="font-bold text-[#3C4A3C]">{currentSelected.zone}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Paquete Contratado:</span>
-                    <span className="font-bold text-[#3C4A3C]">{currentSelected.packageTitle}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Capacidad:</span>
-                    <span className="font-bold text-[#3C4A3C]">{currentSelected.guests} tazas estimadas</span>
-                  </div>
-                </div>
-
                 {/* ========================================================= */}
-                {/* CAJA DE PRESUPUESTO FORMAL ESTIMADO                       */}
+                {/* CENTRO DE RESPUESTA INMEDIATA CON PRESUPUESTO (TOP)       */}
                 {/* ========================================================= */}
-                <div className="bg-[#FAF8F4] p-4 rounded-2xl border border-[#E6DFD4] space-y-3">
+                <div className="bg-gradient-to-br from-[#FAF8F4] to-[#F1ECE1] p-4 sm:p-5 rounded-2xl border-2 border-[#455546]/25 shadow-sm space-y-3.5">
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className="text-[10px] uppercase font-bold text-[#B69C76] tracking-wider block">
-                        Presupuesto Formal Oficial
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#455546] text-[#FAF8F4] text-[10px] font-extrabold uppercase tracking-wider">
+                        <Sparkles className="w-3 h-3 text-[#D4BE9B]" /> Presupuesto Calculado
                       </span>
-                      <span className="text-[11px] text-gray-500">Inversión completa estimada</span>
+                      <span className="text-[11px] text-[#525B4F] block mt-1 font-semibold">
+                        Listo para enviar al cliente
+                      </span>
                     </div>
                     <div className="text-right">
-                      <div className="text-xl font-black text-[#455546] font-editorial">
-                        ${(currentSelected.totalUsd || 820).toLocaleString()}{' '}
-                        <span className="text-[10px] font-sans">USD</span>
+                      <div className="text-2xl sm:text-3xl font-black text-[#3C4A3C] font-editorial tracking-tight">
+                        ${(currentSelected.totalUsd || 1135).toLocaleString()}{' '}
+                        <span className="text-xs font-sans text-[#7A8E77]">USD</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Inclusiones Clave: Personalización & Mobiliario */}
-                  <div className="space-y-1.5 text-[11px] text-[#525B4F] border-t border-[#E6DFD4]/60 pt-2.5">
+                  {/* Desglose de Inclusiones Obligatorias */}
+                  <div className="bg-white/90 p-3 rounded-xl border border-[#E6DFD4] text-xs space-y-2 text-[#3C4A3C]">
                     <div className="flex items-start gap-1.5">
-                      <span className="text-[#B69C76] font-bold">🎨</span>
+                      <span className="text-sm shrink-0">🎨</span>
                       <div>
-                        <strong className="text-[#3C4A3C]">Personalización:</strong> Vasos con Logo/Monograma + Charms 3D & Gemas + Pizarras con tu frase
+                        <strong className="text-[#3C4A3C]">Personalización:</strong> Vasos con Logo + Charms 3D & Gemas + Pizarras personalizadas
                       </div>
                     </div>
                     <div className="flex items-start gap-1.5">
-                      <span className="text-[#7A8E77] font-bold">⛱️</span>
+                      <span className="text-sm shrink-0">⛱️</span>
                       <div>
                         <strong className="text-[#3C4A3C]">Mobiliario:</strong> Toldos Sombrilla Riviera + Mesas Cocteleras + Sillas Medallón & Taburetes
                       </div>
                     </div>
+                    <div className="flex items-start gap-1.5">
+                      <span className="text-sm shrink-0">🍵</span>
+                      <div>
+                        <strong className="text-[#3C4A3C]">Barra:</strong> {currentSelected.packageTitle} ({currentSelected.guests} tazas, 2 Baristas Uji Kioto)
+                      </div>
+                    </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setIsBudgetModalOpen(true)}
-                    className="w-full py-2.5 px-4 rounded-xl bg-[#455546] hover:bg-[#384639] text-white text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer active:scale-98"
-                  >
-                    <FileText className="w-4 h-4 text-[#D4BE9B]" />
-                    <span>Generar Presupuesto Formal (PDF)</span>
-                  </button>
-                </div>
-
-                {/* ========================================================= */}
-                {/* BOTONES DE RESPUESTA INMEDIATA                            */}
-                {/* ========================================================= */}
-                <div className="space-y-2 pt-1 border-t border-[#F3EFE7]">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#75786E] block">
-                    ⚡ Responder Inmediatamente
-                  </span>
-
-                  {/* WhatsApp Directo */}
+                  {/* BOTÓN PRINCIPAL: WHATSAPP 1-CLIC */}
                   <button
                     type="button"
                     onClick={() => {
@@ -683,14 +643,40 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
                       const phone = cleanPhoneForWhatsApp(currentSelected.clientPhone) || '584143260003';
                       window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
                     }}
-                    className="w-full py-3 px-4 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white text-xs font-bold flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer active:scale-98"
+                    className="w-full py-3.5 px-4 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer active:scale-98"
                   >
-                    <MessageCircle className="w-4 h-4" />
+                    <MessageCircle className="w-5 h-5 fill-current" />
                     <span>
-                      WhatsApp a {currentSelected.clientName.split(' ')[0]}{' '}
+                      Responder por WhatsApp a {currentSelected.clientName.split(' ')[0]}{' '}
                       {currentSelected.clientPhone ? `(+${cleanPhoneForWhatsApp(currentSelected.clientPhone)})` : ''}
                     </span>
                   </button>
+
+                  {/* ACCIONES SECUNDARIAS */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsBudgetModalOpen(true)}
+                      className="py-2.5 px-3 rounded-xl bg-[#455546] hover:bg-[#384639] text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+                    >
+                      <FileText className="w-3.5 h-3.5 text-[#D4BE9B]" />
+                      <span>Ver PDF Formal</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const text = getWhatsAppMessage(currentSelected);
+                        navigator.clipboard.writeText(text);
+                        setCopiedQuickText(true);
+                        setTimeout(() => setCopiedQuickText(false), 2500);
+                      }}
+                      className="py-2.5 px-3 rounded-xl bg-white hover:bg-[#FAF8F4] text-[#3C4A3C] border border-[#E6DFD4] text-xs font-bold flex items-center justify-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+                    >
+                      {copiedQuickText ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5 text-[#7A8E77]" />}
+                      <span>{copiedQuickText ? '¡Copiado!' : 'Copiar Propuesta'}</span>
+                    </button>
+                  </div>
 
                   {/* Correo Directo */}
                   {currentSelected.clientEmail && (
@@ -698,27 +684,72 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
                       href={`mailto:${currentSelected.clientEmail}?subject=${encodeURIComponent(
                         `Presupuesto Oficial ICHIN By AMSI - Reserva ${currentSelected.code} (${currentSelected.eventType})`
                       )}&body=${encodeURIComponent(getWhatsAppMessage(currentSelected))}`}
-                      className="w-full py-2.5 px-4 rounded-xl bg-white border border-[#E6DFD4] hover:bg-[#FAF8F4] text-[#3C4A3C] text-xs font-bold flex items-center justify-center gap-2 shadow-2xs transition-all cursor-pointer"
+                      className="w-full py-2 px-3 rounded-xl bg-white/70 hover:bg-white text-[#525B4F] border border-[#E6DFD4] text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                     >
-                      <Mail className="w-4 h-4 text-[#7A8E77]" />
-                      <span>Responder por Correo ({currentSelected.clientEmail})</span>
+                      <Mail className="w-3.5 h-3.5 text-[#7A8E77]" />
+                      <span>Enviar Correo a {currentSelected.clientEmail}</span>
                     </a>
                   )}
+                </div>
 
-                  {/* Copiar texto de propuesta */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const text = getWhatsAppMessage(currentSelected);
-                      navigator.clipboard.writeText(text);
-                      setCopiedQuickText(true);
-                      setTimeout(() => setCopiedQuickText(false), 2500);
-                    }}
-                    className="w-full py-2 px-3 rounded-xl bg-[#FAF8F4] hover:bg-[#F3EFE7] text-[#525B4F] text-[11px] font-bold flex items-center justify-center gap-1.5 border border-[#E6DFD4] transition-all cursor-pointer"
-                  >
-                    {copiedQuickText ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span>{copiedQuickText ? '¡Texto copiado al portapapeles!' : 'Copiar texto formal de propuesta'}</span>
-                  </button>
+                {/* ========================================================= */}
+                {/* DETALLES DE LA RESERVA DEL CLIENTE                        */}
+                {/* ========================================================= */}
+                <div className="pt-2 border-t border-[#F3EFE7]">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#75786E] block mb-2">
+                    Datos del Evento Solicitado
+                  </span>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Titular del Evento:</span>
+                      <span className="font-bold text-[#3C4A3C]">{currentSelected.clientName}</span>
+                    </div>
+
+                    {currentSelected.clientEmail && (
+                      <div className="flex justify-between items-center bg-[#FAF8F4] px-2.5 py-1.5 rounded-xl border border-[#E6DFD4]">
+                        <span className="text-gray-500 flex items-center gap-1 text-[11px]">
+                          <Mail className="w-3 h-3 text-[#7A8E77]" /> Correo:
+                        </span>
+                        <a
+                          href={`mailto:${currentSelected.clientEmail}?subject=${encodeURIComponent(`Cotización ICHIN By AMSI - Reserva ${currentSelected.code}`)}`}
+                          className="font-bold text-[#455546] hover:underline text-[11px] truncate max-w-[200px]"
+                          title="Responder por correo al cliente"
+                        >
+                          {currentSelected.clientEmail}
+                        </a>
+                      </div>
+                    )}
+
+                    {currentSelected.clientPhone && (
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-gray-500 flex items-center gap-1">
+                          <Phone className="w-3 h-3 text-[#7A8E77]" /> Teléfono:
+                        </span>
+                        <span className="font-semibold text-[#3C4A3C]">{currentSelected.clientPhone}</span>
+                      </div>
+                    )}
+
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Tipo de Celebración:</span>
+                      <span className="font-bold text-[#3C4A3C]">{currentSelected.eventType}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Fecha del Servicio:</span>
+                      <span className="font-bold text-[#3C4A3C]">{currentSelected.date}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Locación:</span>
+                      <span className="font-bold text-[#3C4A3C]">{currentSelected.zone}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Paquete Contratado:</span>
+                      <span className="font-bold text-[#3C4A3C]">{currentSelected.packageTitle}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Capacidad:</span>
+                      <span className="font-bold text-[#3C4A3C]">{currentSelected.guests} tazas estimadas</span>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Database Retention Stamp */}
