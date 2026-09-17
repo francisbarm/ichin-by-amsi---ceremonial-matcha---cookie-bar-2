@@ -146,8 +146,15 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
   const extraDrinks = Math.max(0, neededDrinks - selectedPkg.includedDrinks);
   const extraDrinksCost = extraDrinks * 8.0;
 
-  // Charms / Personalización de Bebidas (+$1.00 por pieza/invitado)
-  const charmsCost = quoteState.drinkCharmsCustomization ? quoteState.guestCount * 1.0 : 0;
+  // Mobiliario de Terraza & Lounge (Toldos, Mesas, Sillas)
+  const furnitureCost =
+    quoteState.terraceFurniture === 'lounge_completo'
+      ? 180
+      : quoteState.terraceFurniture === 'mesas_altas'
+      ? 90
+      : quoteState.terraceFurniture === 'toldos_sombrilla'
+      ? 65
+      : 0;
 
   const subtotal =
     basePrice +
@@ -157,7 +164,8 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
     coldFoamCost +
     signatureDrinkCost +
     extraDrinksCost +
-    charmsCost;
+    charmsCost +
+    furnitureCost;
 
   const travelFee = 0; // Included within Gran Caracas
   const grandTotal = Math.round(subtotal + travelFee);

@@ -56,22 +56,12 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
       ) || EVENT_PACKAGES[1];
 
     let calculated = pkg ? pkg.basePrice : 820;
-    const addons = item.adicionales || [];
-    if (Array.isArray(addons)) {
-      addons.forEach((add: string) => {
-        const lower = add.toLowerCase();
-        if (lower.includes('vasos')) calculated += 65;
-        if (lower.includes('toldos') || lower.includes('sombrilla')) calculated += 65;
-        if (lower.includes('mesas altas')) calculated += 90;
-        if (lower.includes('lounge')) calculated += 180;
-        if (lower.includes('espuma') || lower.includes('cold foam')) calculated += 45;
-        if (lower.includes('autor')) calculated += 55;
-        if (lower.includes('charms') || lower.includes('gemas') || lower.includes('personalización')) {
-          calculated += (item.numero_invitados || item.guests || 60) * 1.0;
-        }
-        if (lower.includes('cookies') || lower.includes('galletas')) calculated += 120;
-      });
-    }
+    // Inclusiones obligatorias: Personalización (Vasos $65 + Charms $60) + Mobiliario (Toldos $65 + Mesas $60 + Sillas $65)
+    calculated += 65; // Vasos con Logo
+    calculated += (item.numero_invitados || item.guests || 60) * 1.0; // Charms & Gemas 3D
+    calculated += 65; // Toldos Riviera
+    calculated += 60; // Mesas Cocteleras & Apoyo
+    calculated += 65; // Sillas Medallón & Taburetes
     return Math.round(calculated);
   };
 
@@ -247,32 +237,44 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
       `📍 *Locación:* ${b.zone}`,
       `👥 *Capacidad:* ${b.guests} tazas ceremoniales`,
       `🍵 *Paquete:* ${b.packageTitle}`,
+      ``,
+      `*DESGLOSE DE SERVICIOS INCLUIDOS:*`,
+      `• Barra Ceremonial Matcha & Carrito Móvil (Insumos Uji Kioto + 2 Baristas)`,
+      `• Personalización de Vasos: Vasos cristalinos con Logo / Monograma del Evento`,
+      `• Personalización de Bebidas: Estación de Charms 3D, Dijes & Gemas de Cristal`,
+      `• Pizarras de Bienvenida personalizadas con tus frases favoritas`,
+      `• Mobiliario Exterior: Set de Toldos Sombrilla Riviera (Lona blanca con flecos)`,
+      `• Mobiliario de Confort: Set de Mesas Altas Cocteleras & Mesas de Apoyo`,
+      `• Sillas & Asientos: Set de Sillas Medallón Blancas y Taburetes Cocteleros`,
+      `• Logística, Montaje y Ambientación en Caracas`,
+      ``,
+      `💰 *INVERSIÓN TOTAL ESTIMADA:* *$${(b.totalUsd || 1135).toLocaleString()} USD*`,
+      ``,
+      `*LA EXPERIENCIA INCLUYE:*`,
+      `🎨 *PERSONALIZACIÓN:*`,
+      `  • Vasos personalizados con logo / monograma del evento`,
+      `  • Barra de dijes, charms coleccionables y gemas 3D para decorar las bebidas`,
+      `  • Pizarra de bienvenida y cartelería con frases conmemorativas personalizadas`,
+      ``,
+      `⛱️ *MOBILIARIO EXCLUSIVO:*`,
+      `  • Set de Toldos Sombrilla Riviera (Lona blanca con flecos estilo resort)`,
+      `  • Set de Mesas Altas Cocteleras Blancas & Mesas Bajas de Apoyo`,
+      `  • Set de Sillas Medallón Blancas & Taburetes Cocteleros Tapizados`,
+      ``,
+      `🍵 *SERVICIO CEREMONIAL MATCHA:*`,
+      `  • Carrito artesanal japonés con marquesina curva y ambientación vegetal`,
+      `  • 2 Baristas certificados en batido ceremonial con chasen tradicional`,
+      `  • Matcha Uji grado ceremonial importado fresco de Kioto, Japón`,
+      `  • Variedad de leches vegetales (avena, almendra, coco) y endulzantes orgánicos`,
+      `  • Dispensador de cristal de bienvenida para degustación continua`,
+      ``,
+      `📌 *Condiciones de Reserva:*`,
+      `• 50% de anticipo para congelar y reservar la fecha en agenda formal.`,
+      `• 50% restante 48 horas previas al evento.`,
+      `• Medios de pago: Zelle, Pago Móvil (tasa BCV), Banesco Panamá o Efectivo USD.`,
+      ``,
+      `¿Deseas formalizar la reserva para congelar la fecha en nuestra agenda? Quedamos a tu completa disposición.`,
     ];
-
-    if (Array.isArray(b.adicionales) && b.adicionales.length > 0) {
-      lines.push(``);
-      lines.push(`*ADICIONALES SOLICITADOS:*`);
-      b.adicionales.forEach((add) => {
-        lines.push(`• ${add}`);
-      });
-    }
-
-    lines.push(``);
-    lines.push(`💰 *INVERSIÓN TOTAL ESTIMADA:* *$${(b.totalUsd || 820).toLocaleString()} USD*`);
-    lines.push(``);
-    lines.push(`*LA EXPERIENCIA INCLUYE:*`);
-    lines.push(`✨ Carrito insignia ICHIN con marquesina curva y ambientación vegetal`);
-    lines.push(`✨ 2 Baristas certificados en batido ceremonial en vivo con chasen tradicional`);
-    lines.push(`✨ Matcha Uji grado ceremonial importado fresco de Kioto, Japón`);
-    lines.push(`✨ Leches vegetales premium (avena, almendra, coco) y endulzantes orgánicos`);
-    lines.push(`✨ Vasos de alta gama, pizarras personalizadas y dispensador de bienvenida`);
-    lines.push(``);
-    lines.push(`📌 *Condiciones de Reserva:*`);
-    lines.push(`• 50% de anticipo para congelar y reservar la fecha en agenda formal.`);
-    lines.push(`• 50% restante 48 horas previas al evento.`);
-    lines.push(`• Medios de pago: Zelle, Pago Móvil (tasa BCV), Banesco Panamá o Efectivo USD.`);
-    lines.push(``);
-    lines.push(`¿Deseas formalizar la reserva para congelar la fecha en nuestra agenda? Quedamos a tu completa disposición.`);
 
     return lines.join('\n');
   };
@@ -639,19 +641,21 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
                     </div>
                   </div>
 
-                  {Array.isArray(currentSelected.adicionales) && currentSelected.adicionales.length > 0 && (
-                    <div className="space-y-1 text-[11px] text-[#6A7869] border-t border-[#E6DFD4]/60 pt-2">
-                      <span className="font-bold text-[#3C4A3C] block text-[10px] uppercase tracking-wider">
-                        Adicionales Personalizados:
-                      </span>
-                      {currentSelected.adicionales.map((add, i) => (
-                        <div key={i} className="flex items-start gap-1">
-                          <span className="text-[#7A8E77]">•</span>
-                          <span>{add}</span>
-                        </div>
-                      ))}
+                  {/* Inclusiones Clave: Personalización & Mobiliario */}
+                  <div className="space-y-1.5 text-[11px] text-[#525B4F] border-t border-[#E6DFD4]/60 pt-2.5">
+                    <div className="flex items-start gap-1.5">
+                      <span className="text-[#B69C76] font-bold">🎨</span>
+                      <div>
+                        <strong className="text-[#3C4A3C]">Personalización:</strong> Vasos con Logo/Monograma + Charms 3D & Gemas + Pizarras con tu frase
+                      </div>
                     </div>
-                  )}
+                    <div className="flex items-start gap-1.5">
+                      <span className="text-[#7A8E77] font-bold">⛱️</span>
+                      <div>
+                        <strong className="text-[#3C4A3C]">Mobiliario:</strong> Toldos Sombrilla Riviera + Mesas Cocteleras + Sillas Medallón & Taburetes
+                      </div>
+                    </div>
+                  </div>
 
                   <button
                     type="button"

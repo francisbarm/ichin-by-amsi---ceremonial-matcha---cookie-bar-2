@@ -52,6 +52,7 @@ export const BudgetProposalModal: React.FC<BudgetProposalModalProps> = ({
   );
 
   // Initialize budget items based on booking package and addons
+  // Initialize budget items ensuring personalization, toldos, mesas, and sillas are included
   useEffect(() => {
     if (!booking) return;
 
@@ -63,58 +64,74 @@ export const BudgetProposalModal: React.FC<BudgetProposalModalProps> = ({
 
     const basePrice = pkg.basePrice || 820;
 
-    // 1. Paquete principal
+    // 1. Paquete principal de Matcha Bar
     initialItems.push({
       id: 'pkg-base',
-      description: `Servicio de Barra Ceremonial: ${pkg.name} (${booking.guests || 60} tazas estimadas)`,
+      description: `Servicio de Barra Ceremonial: ${pkg.name} (${booking.guests || 60} tazas estimadas, 2 baristas y vajilla)`,
       quantity: 1,
       unitPrice: basePrice,
       total: basePrice,
     });
 
-    // 2. Addons from booking.adicionales
-    if (Array.isArray(booking.adicionales) && booking.adicionales.length > 0) {
-      booking.adicionales.forEach((add, idx) => {
-        let price = 65;
-        let qty = 1;
+    // 2. Personalización de Vasos con Logo
+    initialItems.push({
+      id: 'addon-vasos',
+      description: 'Personalización de Vasos: Vasos cristalinos con Logo / Monograma Foil del Evento',
+      quantity: 1,
+      unitPrice: 65,
+      total: 65,
+    });
 
-        if (add.toLowerCase().includes('vasos')) {
-          price = 65;
-        } else if (add.toLowerCase().includes('toldos') || add.toLowerCase().includes('sombrilla')) {
-          price = 65;
-        } else if (add.toLowerCase().includes('mesas altas')) {
-          price = 90;
-        } else if (add.toLowerCase().includes('lounge')) {
-          price = 180;
-        } else if (add.toLowerCase().includes('espuma') || add.toLowerCase().includes('cold foam')) {
-          price = 45;
-        } else if (add.toLowerCase().includes('autor')) {
-          price = 55;
-        } else if (
-          add.toLowerCase().includes('charms') ||
-          add.toLowerCase().includes('gemas') ||
-          add.toLowerCase().includes('personalización de bebidas')
-        ) {
-          qty = booking.guests || 60;
-          price = 1.0;
-        } else if (add.toLowerCase().includes('cookies') || add.toLowerCase().includes('galletas')) {
-          price = 120;
-        }
+    // 3. Personalización de Bebidas (Charms & Gemas 3D)
+    const guestQty = booking.guests || 60;
+    initialItems.push({
+      id: 'addon-charms',
+      description: `Personalización de Bebidas: Estación de Charms 3D, Dijes Coleccionables & Gemas de Cristal (${guestQty} piezas)`,
+      quantity: guestQty,
+      unitPrice: 1.0,
+      total: Math.round(guestQty * 1.0),
+    });
 
-        initialItems.push({
-          id: `addon-${idx}`,
-          description: add,
-          quantity: qty,
-          unitPrice: price,
-          total: Math.round(qty * price),
-        });
-      });
-    }
+    // 4. Pizarras y Señalética Personalizada
+    initialItems.push({
+      id: 'addon-pizarras',
+      description: 'Cartelería & Pizarras de Bienvenida personalizadas con frase o nombres del evento',
+      quantity: 1,
+      unitPrice: 0,
+      total: 0,
+    });
 
-    // 3. Logística
+    // 5. Toldos Sombrilla Riviera
+    initialItems.push({
+      id: 'addon-toldos',
+      description: 'Mobiliario de Exterior: Set de Toldos Sombrilla Riviera (Lona blanca con flecos estilo resort)',
+      quantity: 1,
+      unitPrice: 65,
+      total: 65,
+    });
+
+    // 6. Mesas Cocteleras y de Apoyo
+    initialItems.push({
+      id: 'addon-mesas',
+      description: 'Mobiliario: Set de Mesas Altas Cocteleras Blancas & Mesas Bajas de Apoyo',
+      quantity: 1,
+      unitPrice: 60,
+      total: 60,
+    });
+
+    // 7. Sillas Medallón y Taburetes
+    initialItems.push({
+      id: 'addon-sillas',
+      description: 'Sillas & Asientos: Set de Sillas Medallón Blancas y Taburetes Cocteleros Tapizados',
+      quantity: 1,
+      unitPrice: 65,
+      total: 65,
+    });
+
+    // 8. Logística y Montaje
     initialItems.push({
       id: 'logistica',
-      description: `Montaje, ambientación e iluminación en locación (${booking.zone || 'Caracas'})`,
+      description: `Montaje, ambientación vegetal e iluminación en locación (${booking.zone || 'Caracas'})`,
       quantity: 1,
       unitPrice: 0,
       total: 0,
@@ -144,6 +161,78 @@ export const BudgetProposalModal: React.FC<BudgetProposalModalProps> = ({
 
   const whatsappPhone = cleanPhone(booking.clientPhone);
 
+  // Quick preset adder
+  const handleAddPreset = (type: 'toldos' | 'mesas' | 'sillas' | 'vasos' | 'charms' | 'lounge') => {
+    if (type === 'toldos') {
+      setItems([
+        ...items,
+        {
+          id: `toldos-${Date.now()}`,
+          description: 'Set de Toldos Sombrilla Riviera (Lona blanca con flecos)',
+          quantity: 1,
+          unitPrice: 65,
+          total: 65,
+        },
+      ]);
+    } else if (type === 'mesas') {
+      setItems([
+        ...items,
+        {
+          id: `mesas-${Date.now()}`,
+          description: 'Set de Mesas Altas Cocteleras Blancas & Mesas de Apoyo',
+          quantity: 1,
+          unitPrice: 60,
+          total: 60,
+        },
+      ]);
+    } else if (type === 'sillas') {
+      setItems([
+        ...items,
+        {
+          id: `sillas-${Date.now()}`,
+          description: 'Set de Sillas Medallón Blancas y Taburetes Cocteleros',
+          quantity: 1,
+          unitPrice: 65,
+          total: 65,
+        },
+      ]);
+    } else if (type === 'vasos') {
+      setItems([
+        ...items,
+        {
+          id: `vasos-${Date.now()}`,
+          description: 'Vasos personalizados con Logo / Monograma Foil del Evento',
+          quantity: 1,
+          unitPrice: 65,
+          total: 65,
+        },
+      ]);
+    } else if (type === 'charms') {
+      const q = booking.guests || 60;
+      setItems([
+        ...items,
+        {
+          id: `charms-${Date.now()}`,
+          description: `Estación de Charms 3D, Dijes & Gemas para vasos (${q} pzs)`,
+          quantity: q,
+          unitPrice: 1.0,
+          total: q,
+        },
+      ]);
+    } else if (type === 'lounge') {
+      setItems([
+        ...items,
+        {
+          id: `lounge-${Date.now()}`,
+          description: 'Montaje Lounge Completo: Toldos Riviera + Mesas Altas + Sillas Medallón y Taburetes',
+          quantity: 1,
+          unitPrice: 180,
+          total: 180,
+        },
+      ]);
+    }
+  };
+
   // Generate WhatsApp formatted text
   const generateWhatsAppMessage = () => {
     const lines = [
@@ -169,11 +258,22 @@ export const BudgetProposalModal: React.FC<BudgetProposalModalProps> = ({
       `💰 *INVERSIÓN TOTAL:* *$${grandTotal.toLocaleString()} USD*`,
       ``,
       `*LA EXPERIENCIA INCLUYE:*`,
-      `✨ Carrito móvil artesanal japonés con marquesina y decoración vegetal`,
-      `✨ 2 Baristas certificados en batido ceremonial con chasen tradicional`,
-      `✨ Matcha Uji grado ceremonial importado fresco de Kioto, Japón`,
-      `✨ Variedad de leches vegetales (avena, almendra, coco) y endulzantes orgánicos`,
-      `✨ Vasos de alta gama, dispensador de bienvenida y pizarras con tus frases`,
+      `🎨 *PERSONALIZACIÓN:*`,
+      `  • Vasos personalizados con logo / monograma del evento`,
+      `  • Barra de dijes, charms coleccionables y gemas 3D para decorar cada bebida`,
+      `  • Pizarra de bienvenida y cartelería con frases conmemorativas personalizadas`,
+      ``,
+      `⛱️ *MOBILIARIO EXCLUSIVO DE TERRAZA & JARDÍN:*`,
+      `  • Toldos Sombrilla Riviera (Lona blanca con flecos estilo resort)`,
+      `  • Set de Mesas Altas Cocteleras & Mesas Bajas de Apoyo`,
+      `  • Set de Sillas Medallón Blancas & Taburetes Cocteleros Tapizados`,
+      ``,
+      `🍵 *SERVICIO CEREMONIAL MATCHA:*`,
+      `  • Carrito móvil artesanal japonés con marquesina y decoración vegetal`,
+      `  • 2 Baristas certificados en batido ceremonial con chasen tradicional`,
+      `  • Matcha Uji grado ceremonial importado fresco de Kioto, Japón`,
+      `  • Variedad de leches vegetales (avena, almendra, coco) y endulzantes orgánicos`,
+      `  • Dispensador de cristal de bienvenida para degustación continua`,
       ``,
       `📌 *Condiciones de Reserva:*`,
       `• 50% de anticipo para congelar y reservar la fecha en agenda formal.`,
@@ -459,7 +559,7 @@ export const BudgetProposalModal: React.FC<BudgetProposalModalProps> = ({
 
           {/* Itemized Table */}
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <h4 className="text-xs font-bold uppercase tracking-wider text-[#75786E]">
                 Desglose de Servicios & Experiencia
               </h4>
@@ -469,7 +569,56 @@ export const BudgetProposalModal: React.FC<BudgetProposalModalProps> = ({
                 className="text-xs font-bold text-[#455546] hover:text-[#2d382e] flex items-center gap-1 cursor-pointer print:hidden"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>Agregar Ítem</span>
+                <span>Agregar Ítem Personalizado</span>
+              </button>
+            </div>
+
+            {/* Quick Add Presets: Personalización, Toldos, Mesas, Sillas */}
+            <div className="flex flex-wrap items-center gap-1.5 print:hidden bg-[#FAF8F4] p-2.5 rounded-2xl border border-[#E6DFD4]">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#7A8E77] mr-1">
+                Incluir Adicionales:
+              </span>
+              <button
+                type="button"
+                onClick={() => handleAddPreset('toldos')}
+                className="py-1 px-2.5 rounded-full bg-white border border-[#E6DFD4] hover:border-[#7A8E77] text-[#3C4A3C] text-[11px] font-bold transition-all cursor-pointer shadow-2xs"
+              >
+                + Toldos Riviera ($65)
+              </button>
+              <button
+                type="button"
+                onClick={() => handleAddPreset('mesas')}
+                className="py-1 px-2.5 rounded-full bg-white border border-[#E6DFD4] hover:border-[#7A8E77] text-[#3C4A3C] text-[11px] font-bold transition-all cursor-pointer shadow-2xs"
+              >
+                + Mesas Cocteleras ($60)
+              </button>
+              <button
+                type="button"
+                onClick={() => handleAddPreset('sillas')}
+                className="py-1 px-2.5 rounded-full bg-white border border-[#E6DFD4] hover:border-[#7A8E77] text-[#3C4A3C] text-[11px] font-bold transition-all cursor-pointer shadow-2xs"
+              >
+                + Sillas Medallón ($65)
+              </button>
+              <button
+                type="button"
+                onClick={() => handleAddPreset('vasos')}
+                className="py-1 px-2.5 rounded-full bg-white border border-[#E6DFD4] hover:border-[#7A8E77] text-[#3C4A3C] text-[11px] font-bold transition-all cursor-pointer shadow-2xs"
+              >
+                + Vasos Personalizados ($65)
+              </button>
+              <button
+                type="button"
+                onClick={() => handleAddPreset('charms')}
+                className="py-1 px-2.5 rounded-full bg-white border border-[#E6DFD4] hover:border-[#7A8E77] text-[#3C4A3C] text-[11px] font-bold transition-all cursor-pointer shadow-2xs"
+              >
+                + Charms & Gemas 3D ($1/pza)
+              </button>
+              <button
+                type="button"
+                onClick={() => handleAddPreset('lounge')}
+                className="py-1 px-2.5 rounded-full bg-[#455546]/10 border border-[#455546]/20 hover:bg-[#455546] hover:text-white text-[#455546] text-[11px] font-bold transition-all cursor-pointer shadow-2xs"
+              >
+                ✨ Pack Lounge Completo ($180)
               </button>
             </div>
 
