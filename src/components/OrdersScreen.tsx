@@ -151,10 +151,10 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
             type="button"
             onClick={fetchSupabaseBookings}
             className="py-2.5 px-4 rounded-full bg-white border border-[#E6DFD4] text-[#3C4A3C] text-xs font-bold flex items-center gap-1.5 hover:bg-[#FAF8F4] transition-all shadow-2xs"
-            title="Sincronizar reservas desde Supabase"
+            title="Actualizar lista de reservas"
           >
             <RefreshCw className={`w-3.5 h-3.5 text-[#7A8E77] ${loading ? 'animate-spin' : ''}`} />
-            <span>{loading ? 'Sincronizando...' : 'Actualizar Supabase'}</span>
+            <span>{loading ? 'Actualizando...' : 'Actualizar'}</span>
           </button>
 
           <button
@@ -178,7 +178,7 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
             {supabaseBookings.length > 0 && (
               <span className="text-[10px] text-[#7A8E77] font-bold lowercase flex items-center gap-1">
                 <Database className="w-3 h-3" />
-                <span>conectado a Supabase CRM</span>
+                <span>sincronizado en tiempo real</span>
               </span>
             )}
           </div>
@@ -436,7 +436,7 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
                 {/* Database Retention Stamp */}
                 <div className="flex items-center gap-2 bg-[#455546]/10 px-3 py-2 rounded-xl border border-[#455546]/20 text-[11px] text-[#3C4A3C]">
                   <Database className="w-3.5 h-3.5 text-[#7A8E77] shrink-0" />
-                  <span>Reserva sincronizada en Supabase CRM</span>
+                  <span>Reserva sincronizada en la nube</span>
                 </div>
 
                 {/* Milestone Tracker */}
