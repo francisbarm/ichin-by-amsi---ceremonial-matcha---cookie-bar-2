@@ -1,8 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { BookingRecord, CartOrderItem } from '../types';
-import { Clock, Calendar, MapPin, CheckCircle2, ChevronRight, QrCode, FileText, Sparkles, MessageCircle, RefreshCw, Database, Mail, Phone, User as UserIcon, Filter } from 'lucide-react';
+import {
+  Clock,
+  Calendar,
+  MapPin,
+  CheckCircle2,
+  ChevronRight,
+  QrCode,
+  FileText,
+  Sparkles,
+  MessageCircle,
+  RefreshCw,
+  Database,
+  Mail,
+  Phone,
+  User as UserIcon,
+  Filter,
+  DollarSign,
+  Printer,
+  Copy,
+  Check,
+  Send,
+} from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { BudgetProposalModal, BudgetItem } from './BudgetProposalModal';
+import { EVENT_PACKAGES } from '../data/eventPackages';
 
 interface OrdersScreenProps {
   bookings: BookingRecord[];
@@ -19,6 +42,38 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
   const [supabaseBookings, setSupabaseBookings] = useState<BookingRecord[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [filterOnlyMine, setFilterOnlyMine] = useState<boolean>(false);
+  const [isBudgetModalOpen, setIsBudgetModalOpen] = useState<boolean>(false);
+  const [copiedQuickText, setCopiedQuickText] = useState<boolean>(false);
+
+  // Helper to calculate total for a booking
+  const calculateTotal = (item: any): number => {
+    if (item.resumen_items?.totalUsd && Number(item.resumen_items.totalUsd) > 0) {
+      return Number(item.resumen_items.totalUsd);
+    }
+    const pkg =
+      EVENT_PACKAGES.find(
+        (p) => p.name.toLowerCase() === (item.paquete_nombre || item.packageTitle || '').toLowerCase()
+      ) || EVENT_PACKAGES[1];
+
+    let calculated = pkg ? pkg.basePrice : 820;
+    const addons = item.adicionales || [];
+    if (Array.isArray(addons)) {
+      addons.forEach((add: string) => {
+        const lower = add.toLowerCase();
+        if (lower.includes('vasos')) calculated += 65;
+        if (lower.includes('toldos') || lower.includes('sombrilla')) calculated += 65;
+        if (lower.includes('mesas altas')) calculated += 90;
+        if (lower.includes('lounge')) calculated += 180;
+        if (lower.includes('espuma') || lower.includes('cold foam')) calculated += 45;
+        if (lower.includes('autor')) calculated += 55;
+        if (lower.includes('charms') || lower.includes('gemas') || lower.includes('personalización')) {
+          calculated += (item.numero_invitados || item.guests || 60) * 1.0;
+        }
+        if (lower.includes('cookies') || lower.includes('galletas')) calculated += 120;
+      });
+    }
+    return Math.round(calculated);
+  };
 
   const handleUpdateBookingStatus = async (bookingId: string, newStatus: 'pending' | 'in_prep' | 'confirmed') => {
     if (!isAdmin) return;
@@ -52,6 +107,54 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
     }
   };
 
+  // Save budget total directly to Supabase
+  const handleSaveBudgetTotal = async (bookingId: string, totalUsd: number, budgetItems: BudgetItem[]) => {
+    try {
+      const b = supabaseBookings.find((item) => item.id === bookingId);
+      const updatedResumen = {
+        ...(b?.resumenItems || {}),
+        totalUsd: totalUsd,
+        budgetItems: budgetItems,
+      };
+
+      await supabase
+        .from('ichin_cotizaciones')
+        .update({
+          resumen_items: updatedResumen,
+          estado: 'presupuesto_enviado',
+        })
+        .eq('id', bookingId);
+
+      setSupabaseBookings((prev) =>
+        prev.map((item) =>
+          item.id === bookingId
+            ? {
+                ...item,
+                totalUsd: totalUsd,
+                statusLabel: 'Presupuesto Enviado',
+                resumenItems: updatedResumen,
+              }
+            : item
+        )
+      );
+
+      if (selectedBooking?.id === bookingId) {
+        setSelectedBooking((prev) =>
+          prev
+            ? {
+                ...prev,
+                totalUsd: totalUsd,
+                statusLabel: 'Presupuesto Enviado',
+                resumenItems: updatedResumen,
+              }
+            : null
+        );
+      }
+    } catch (err) {
+      console.error('Error al guardar presupuesto en Supabase:', err);
+    }
+  };
+
   const fetchSupabaseBookings = async () => {
     try {
       setLoading(true);
@@ -61,22 +164,36 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
         .order('creado_en', { ascending: false });
 
       if (data && data.length > 0) {
-        const mapped: BookingRecord[] = data.map((item) => ({
-          id: item.id,
-          code: item.resumen_items?.codigo || `ICH-${item.id.slice(0, 4).toUpperCase()}`,
-          clientName: item.cliente_nombre || 'Cliente',
-          clientEmail: item.cliente_email || undefined,
-          clientPhone: item.cliente_telefono || undefined,
-          eventType: item.tipo_evento || 'Evento',
-          date: item.fecha_evento || 'Por definir',
-          zone: item.lugar_evento || 'Caracas',
-          packageTitle: item.paquete_nombre || 'Paquete Ceremonial',
-          guests: item.numero_invitados || 50,
-          totalUsd: 0,
-          status: item.estado === 'confirmado' ? 'confirmed' : item.estado === 'en_prep' ? 'in_prep' : 'pending',
-          statusLabel: item.estado === 'confirmado' ? 'Confirmado' : item.estado === 'en_prep' ? 'En Preparación' : 'En Revisión',
-          createdAt: new Date(item.creado_en).toLocaleDateString('es-VE'),
-        }));
+        const mapped: BookingRecord[] = data.map((item) => {
+          const total = calculateTotal(item);
+          return {
+            id: item.id,
+            code: item.resumen_items?.codigo || `ICH-${item.id.slice(0, 4).toUpperCase()}`,
+            clientName: item.cliente_nombre || 'Cliente',
+            clientEmail: item.cliente_email || undefined,
+            clientPhone: item.cliente_telefono || undefined,
+            eventType: item.tipo_evento || 'Evento',
+            date: item.fecha_evento || 'Por definir',
+            zone: item.lugar_evento || 'Caracas',
+            packageTitle: item.paquete_nombre || 'Paquete Ceremonial',
+            guests: item.numero_invitados || 50,
+            totalUsd: total,
+            status: item.estado === 'confirmado' ? 'confirmed' : item.estado === 'en_prep' ? 'in_prep' : 'pending',
+            statusLabel:
+              item.estado === 'confirmado'
+                ? 'Confirmado'
+                : item.estado === 'en_prep'
+                ? 'En Preparación'
+                : item.estado === 'presupuesto_enviado'
+                ? 'Presupuesto Enviado'
+                : 'En Revisión',
+            createdAt: new Date(item.creado_en).toLocaleDateString('es-VE'),
+            adicionales: item.adicionales || [],
+            resumenItems: item.resumen_items || {},
+            notas: item.notas_adicionales || '',
+            tipoMontaje: item.tipo_montaje || '',
+          };
+        });
         setSupabaseBookings(mapped);
       } else {
         setSupabaseBookings([]);
@@ -103,6 +220,62 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
 
   const [selectedBooking, setSelectedBooking] = useState<BookingRecord | null>(null);
   const currentSelected = selectedBooking || displayBookings[0] || null;
+
+  // Clean phone number for WhatsApp
+  const cleanPhoneForWhatsApp = (phone?: string) => {
+    if (!phone) return '';
+    let digits = phone.replace(/\D/g, '');
+    if (digits.startsWith('0')) {
+      digits = digits.substring(1);
+    }
+    if (!digits.startsWith('58') && (digits.startsWith('412') || digits.startsWith('414') || digits.startsWith('424') || digits.startsWith('416') || digits.startsWith('426'))) {
+      digits = '58' + digits;
+    }
+    return digits;
+  };
+
+  // Generate Quick WhatsApp message
+  const getWhatsAppMessage = (b: BookingRecord) => {
+    const lines = [
+      `🍵 *ICHIN By AMSI | Propuesta y Presupuesto Oficial*`,
+      `Hola *${b.clientName}*, un placer saludarte.`,
+      ``,
+      `Te compartimos la propuesta oficial y presupuesto para tu evento *${b.eventType}* con nuestro Carrito Ceremonial de Matcha & Cookies:`,
+      ``,
+      `📋 *Código de Reserva:* ${b.code}`,
+      `📅 *Fecha y Hora:* ${b.date}`,
+      `📍 *Locación:* ${b.zone}`,
+      `👥 *Capacidad:* ${b.guests} tazas ceremoniales`,
+      `🍵 *Paquete:* ${b.packageTitle}`,
+    ];
+
+    if (Array.isArray(b.adicionales) && b.adicionales.length > 0) {
+      lines.push(``);
+      lines.push(`*ADICIONALES SOLICITADOS:*`);
+      b.adicionales.forEach((add) => {
+        lines.push(`• ${add}`);
+      });
+    }
+
+    lines.push(``);
+    lines.push(`💰 *INVERSIÓN TOTAL ESTIMADA:* *$${(b.totalUsd || 820).toLocaleString()} USD*`);
+    lines.push(``);
+    lines.push(`*LA EXPERIENCIA INCLUYE:*`);
+    lines.push(`✨ Carrito insignia ICHIN con marquesina curva y ambientación vegetal`);
+    lines.push(`✨ 2 Baristas certificados en batido ceremonial en vivo con chasen tradicional`);
+    lines.push(`✨ Matcha Uji grado ceremonial importado fresco de Kioto, Japón`);
+    lines.push(`✨ Leches vegetales premium (avena, almendra, coco) y endulzantes orgánicos`);
+    lines.push(`✨ Vasos de alta gama, pizarras personalizadas y dispensador de bienvenida`);
+    lines.push(``);
+    lines.push(`📌 *Condiciones de Reserva:*`);
+    lines.push(`• 50% de anticipo para congelar y reservar la fecha en agenda formal.`);
+    lines.push(`• 50% restante 48 horas previas al evento.`);
+    lines.push(`• Medios de pago: Zelle, Pago Móvil (tasa BCV), Banesco Panamá o Efectivo USD.`);
+    lines.push(``);
+    lines.push(`¿Deseas formalizar la reserva para congelar la fecha en nuestra agenda? Quedamos a tu completa disposición.`);
+
+    return lines.join('\n');
+  };
 
   const getStatusBadge = (status: BookingRecord['status']) => {
     switch (status) {
@@ -289,16 +462,30 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
                     <MapPin className="w-3.5 h-3.5 text-[#7A8E77]" />
                     <span className="truncate">{b.zone.split('/')[0]}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 font-bold text-[#7A8E77]">
-                    <span>Cotización a Medida</span>
+                  <div className="flex items-center gap-1.5 font-black text-[#455546]">
+                    <span>${(b.totalUsd || 820).toLocaleString()} USD</span>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between text-xs text-[#3C4A3C] font-semibold pt-1">
                   <span>{b.packageTitle} ({b.guests} personas)</span>
-                  <span className="text-[#B69C76] flex items-center gap-1 hover:underline">
-                    Ver Ticket <ChevronRight className="w-3.5 h-3.5" />
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedBooking(b);
+                        setIsBudgetModalOpen(true);
+                      }}
+                      className="px-2.5 py-1 rounded-full bg-[#455546]/10 text-[#455546] hover:bg-[#455546] hover:text-white transition-all text-[11px] font-bold flex items-center gap-1 cursor-pointer"
+                    >
+                      <FileText className="w-3 h-3" />
+                      <span>Presupuesto</span>
+                    </button>
+                    <span className="text-[#B69C76] flex items-center gap-0.5 hover:underline">
+                      Ver Ticket <ChevronRight className="w-3.5 h-3.5" />
+                    </span>
+                  </div>
                 </div>
               </div>
             );
@@ -346,7 +533,7 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
                   Caracas • Ceremonial Matcha Cart Service
                 </p>
 
-                {/* Perforated ticket divider circles - blends with oat page background */}
+                {/* Perforated ticket divider circles */}
                 <div className="absolute -bottom-3 -left-3 w-6 h-6 rounded-full bg-[#FAF8F4]"></div>
                 <div className="absolute -bottom-3 -right-3 w-6 h-6 rounded-full bg-[#FAF8F4]"></div>
               </div>
@@ -433,6 +620,103 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
                   </div>
                 </div>
 
+                {/* ========================================================= */}
+                {/* CAJA DE PRESUPUESTO FORMAL ESTIMADO                       */}
+                {/* ========================================================= */}
+                <div className="bg-[#FAF8F4] p-4 rounded-2xl border border-[#E6DFD4] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-[#B69C76] tracking-wider block">
+                        Presupuesto Formal Oficial
+                      </span>
+                      <span className="text-[11px] text-gray-500">Inversión completa estimada</span>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xl font-black text-[#455546] font-editorial">
+                        ${(currentSelected.totalUsd || 820).toLocaleString()}{' '}
+                        <span className="text-[10px] font-sans">USD</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {Array.isArray(currentSelected.adicionales) && currentSelected.adicionales.length > 0 && (
+                    <div className="space-y-1 text-[11px] text-[#6A7869] border-t border-[#E6DFD4]/60 pt-2">
+                      <span className="font-bold text-[#3C4A3C] block text-[10px] uppercase tracking-wider">
+                        Adicionales Personalizados:
+                      </span>
+                      {currentSelected.adicionales.map((add, i) => (
+                        <div key={i} className="flex items-start gap-1">
+                          <span className="text-[#7A8E77]">•</span>
+                          <span>{add}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => setIsBudgetModalOpen(true)}
+                    className="w-full py-2.5 px-4 rounded-xl bg-[#455546] hover:bg-[#384639] text-white text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer active:scale-98"
+                  >
+                    <FileText className="w-4 h-4 text-[#D4BE9B]" />
+                    <span>Generar Presupuesto Formal (PDF)</span>
+                  </button>
+                </div>
+
+                {/* ========================================================= */}
+                {/* BOTONES DE RESPUESTA INMEDIATA                            */}
+                {/* ========================================================= */}
+                <div className="space-y-2 pt-1 border-t border-[#F3EFE7]">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#75786E] block">
+                    ⚡ Responder Inmediatamente
+                  </span>
+
+                  {/* WhatsApp Directo */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const text = getWhatsAppMessage(currentSelected);
+                      const phone = cleanPhoneForWhatsApp(currentSelected.clientPhone) || '584143260003';
+                      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
+                    }}
+                    className="w-full py-3 px-4 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white text-xs font-bold flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer active:scale-98"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    <span>
+                      WhatsApp a {currentSelected.clientName.split(' ')[0]}{' '}
+                      {currentSelected.clientPhone ? `(+${cleanPhoneForWhatsApp(currentSelected.clientPhone)})` : ''}
+                    </span>
+                  </button>
+
+                  {/* Correo Directo */}
+                  {currentSelected.clientEmail && (
+                    <a
+                      href={`mailto:${currentSelected.clientEmail}?subject=${encodeURIComponent(
+                        `Presupuesto Oficial ICHIN By AMSI - Reserva ${currentSelected.code} (${currentSelected.eventType})`
+                      )}&body=${encodeURIComponent(getWhatsAppMessage(currentSelected))}`}
+                      className="w-full py-2.5 px-4 rounded-xl bg-white border border-[#E6DFD4] hover:bg-[#FAF8F4] text-[#3C4A3C] text-xs font-bold flex items-center justify-center gap-2 shadow-2xs transition-all cursor-pointer"
+                    >
+                      <Mail className="w-4 h-4 text-[#7A8E77]" />
+                      <span>Responder por Correo ({currentSelected.clientEmail})</span>
+                    </a>
+                  )}
+
+                  {/* Copiar texto de propuesta */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const text = getWhatsAppMessage(currentSelected);
+                      navigator.clipboard.writeText(text);
+                      setCopiedQuickText(true);
+                      setTimeout(() => setCopiedQuickText(false), 2500);
+                    }}
+                    className="w-full py-2 px-3 rounded-xl bg-[#FAF8F4] hover:bg-[#F3EFE7] text-[#525B4F] text-[11px] font-bold flex items-center justify-center gap-1.5 border border-[#E6DFD4] transition-all cursor-pointer"
+                  >
+                    {copiedQuickText ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copiedQuickText ? '¡Texto copiado al portapapeles!' : 'Copiar texto formal de propuesta'}</span>
+                  </button>
+                </div>
+
                 {/* Database Retention Stamp */}
                 <div className="flex items-center gap-2 bg-[#455546]/10 px-3 py-2 rounded-xl border border-[#455546]/20 text-[11px] text-[#3C4A3C]">
                   <Database className="w-3.5 h-3.5 text-[#7A8E77] shrink-0" />
@@ -440,7 +724,7 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
                 </div>
 
                 {/* Milestone Tracker */}
-                <div className="pt-3 border-t border-[#F3EFE7]">
+                <div className="pt-2 border-t border-[#F3EFE7]">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-[#75786E] block mb-2">
                     Progreso Logístico
                   </span>
@@ -458,43 +742,6 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
                       <span>3. Insumos frescos Uji y baristas confirmados</span>
                     </div>
                   </div>
-                </div>
-
-                {/* Email Reply Action if email present */}
-                {currentSelected.clientEmail && (
-                  <a
-                    href={`mailto:${currentSelected.clientEmail}?subject=${encodeURIComponent(`Respuesta a tu Solicitud de Reserva ${currentSelected.code} - ICHIN By AMSI`)}&body=${encodeURIComponent(`Estimado/a ${currentSelected.clientName},\n\n¡Gracias por contactar a ICHIN By AMSI Ceremonial Matcha Bar!\n\nHemos recibido y registrado en nuestra base de datos los detalles de tu solicitud de evento con código ${currentSelected.code} (${currentSelected.packageTitle}) para el ${currentSelected.date} en ${currentSelected.zone}.\n\nQuedamos a tu entera disposición para enviarte la propuesta formal detallada y coordinar la visita técnica de nuestro Carrito Móvil.\n\nAtentamente,\nEquipo ICHIN By AMSI\nCaracas, Venezuela`)}`}
-                    className="w-full py-2.5 px-4 rounded-xl bg-[#455546] text-white hover:bg-[#384639] transition-all text-xs font-bold flex items-center justify-center gap-2 shadow-xs"
-                  >
-                    <Mail className="w-3.5 h-3.5 text-[#D4BE9B]" />
-                    <span>✉️ Responder al Cliente por Correo</span>
-                  </a>
-                )}
-
-                {/* Simulated QR Code */}
-                <div className="bg-[#FAF8F4] p-4 rounded-2xl border border-[#E6DFD4] flex items-center justify-between mt-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-white rounded-lg border border-[#E6DFD4] flex items-center justify-center text-[#3C4A3C]">
-                      <QrCode className="w-8 h-8" />
-                    </div>
-                    <div>
-                      <span className="text-[10px] uppercase font-bold text-[#B69C76] block">
-                        Pase de Acceso ICHIN
-                      </span>
-                      <span className="text-xs font-black text-[#3C4A3C]">
-                        Propuesta a Medida
-                      </span>
-                    </div>
-                  </div>
-
-                  <a
-                    href={`https://wa.me/584143260003?text=${encodeURIComponent(`Hola, quiero consultar el estado de mi reserva ${currentSelected.code}`)}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="p-2.5 rounded-full bg-[#455546] text-white hover:bg-[#384639] transition-all"
-                  >
-                    <MessageCircle className="w-4 h-4" />
-                  </a>
                 </div>
 
               </div>
@@ -518,6 +765,16 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
         </div>
 
       </div>
+
+      {/* Modal de Presupuesto Formal Oficial */}
+      {currentSelected && (
+        <BudgetProposalModal
+          isOpen={isBudgetModalOpen}
+          onClose={() => setIsBudgetModalOpen(false)}
+          booking={currentSelected}
+          onSaveTotal={handleSaveBudgetTotal}
+        />
+      )}
 
     </div>
   );

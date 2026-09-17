@@ -32,3 +32,25 @@
   background: #99A996;
 }
 
+/* Estilos de Impresión / Guardar PDF de Presupuesto */
+@media print {
+  body {
+    background-color: #ffffff !important;
+    color: #1a1a1a !important;
+  }
+  header,
+  footer,
+  nav,
+  #header-login-btn,
+  #open-cart-button,
+  .print\:hidden {
+    display: none !important;
+  }
+  #formal-budget-document {
+    display: block !important;
+    width: 100% !important;
+    padding: 20px !important;
+    margin: 0 !important;
+  }
+}
+

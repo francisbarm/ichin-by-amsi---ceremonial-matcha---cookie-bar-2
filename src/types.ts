@@ -167,5 +167,9 @@ export interface BookingRecord {
   status: 'confirmed' | 'in_prep' | 'pending';
   statusLabel: string;
   createdAt: string;
+  adicionales?: string[];
+  resumenItems?: any;
+  notas?: string;
+  tipoMontaje?: string;
 }
 
