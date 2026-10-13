@@ -8,7 +8,7 @@ import {
   Printer, ChevronDown, ChevronUp, HelpCircle, CheckCircle2, User as UserIcon
 } from 'lucide-react';
 import { guardarCotizacionSupabase } from '../lib/supabase';
-import { enviarCorreoCotizacionResend, generarMailtoCotizacion } from '../services/resendService';
+import { enviarCorreoCotizacionResend } from '../services/resendService';
 import { enviarCotizacionWhatsApp } from '../services/whatsappService';
 import { useAuth } from '../context/AuthContext';
 import { 
@@ -79,7 +79,7 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
     }
   }, [initialQuoteParams]);
 
-  const { user, profile } = useAuth();
+  const { user, profile, isAdmin } = useAuth();
 
   // Pre-fill user details if logged in
   useEffect(() => {
@@ -213,7 +213,7 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
 
     const furnitureText = getFurnitureLabel(quoteState.terraceFurniture);
     const charmsText = quoteState.drinkCharmsCustomization 
-      ? `Personalización de Bebidas: ${getCharmsThemeLabel(quoteState.drinkCharmsTheme)} (${quoteState.guestCount} pzs x $1 = +$${quoteState.guestCount})`
+      ? `Personalización de Bebidas: ${getCharmsThemeLabel(quoteState.drinkCharmsTheme)} (${quoteState.guestCount} piezas)`
       : '';
 
     const addonsList = [
@@ -276,10 +276,15 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
   const handleSendByEmail = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
 
-    // Validar correo
-    if (!quoteState.clientEmail || !quoteState.clientEmail.includes('@')) {
+    // Validar contacto: correo (cualquier proveedor) o, si no tiene, teléfono / WhatsApp
+    const emailTyped = quoteState.clientEmail.trim();
+    const hasEmail = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(emailTyped);
+    const hasPhone = quoteState.clientPhone.replace(/\D/g, '').length >= 7;
+    if ((emailTyped && !hasEmail) || (!hasEmail && !hasPhone)) {
       setCurrentStep(4);
-      setEmailError('Por favor ingresa tu correo electrónico para enviarte la propuesta formal.');
+      setEmailError(emailTyped
+        ? 'Revisa tu correo: parece incompleto (ej. nombre@gmail.com, @hotmail.com, @icloud.com…).'
+        : 'Déjanos tu correo o tu teléfono / WhatsApp para enviarte el presupuesto.');
       setTimeout(() => {
         const el = document.getElementById('client-email-input');
         if (el) {
@@ -315,7 +320,7 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
 
     const furnitureText = getFurnitureLabel(quoteState.terraceFurniture);
     const charmsText = quoteState.drinkCharmsCustomization 
-      ? `Personalización de Bebidas: ${getCharmsThemeLabel(quoteState.drinkCharmsTheme)} (${quoteState.guestCount} pzs x $1 = +$${quoteState.guestCount})`
+      ? `Personalización de Bebidas: ${getCharmsThemeLabel(quoteState.drinkCharmsTheme)} (${quoteState.guestCount} piezas)`
       : '';
 
     const addonsList = [
@@ -353,7 +358,7 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
     });
 
     // 2. Enviar correo vía Resend
-    await enviarCorreoCotizacionResend({
+    if (hasEmail) await enviarCorreoCotizacionResend({
       toEmail: quoteState.clientEmail.trim(),
       clientName: quoteState.clientName.trim() || 'Cliente Distinguido',
       bookingCode: bookingCode,
@@ -369,29 +374,6 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
       signagePhrase: quoteState.customSignagePhrase,
     });
 
-    // 3. Abrir cliente de correo pre-redactado (Mailto)
-    const mailtoUrl = generarMailtoCotizacion({
-      bookingCode,
-      clientName: quoteState.clientName.trim() || 'Cliente Distinguido',
-      clientPhone: quoteState.clientPhone.trim() || 'No indicado',
-      clientEmail: quoteState.clientEmail.trim(),
-      packageName: selectedPkg.name,
-      guestCount: quoteState.guestCount,
-      eventDate: quoteState.eventDate,
-      eventTime: quoteState.eventTime,
-      locationZone: quoteState.locationZone,
-      furnitureText: furnitureText || undefined,
-      charmsText: charmsText || undefined,
-      signagePhrase: quoteState.customSignagePhrase,
-      addons: addonsList,
-      specialRequests: quoteState.specialRequests,
-    });
-
-    try {
-      window.location.href = mailtoUrl;
-    } catch (e) {
-      console.log('Mailto trigger:', e);
-    }
 
     const newRecord: BookingRecord = {
       id: `quote-${Date.now()}`,
@@ -441,7 +423,7 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
     };
 
     const charmsText = quoteState.drinkCharmsCustomization 
-      ? `Personalización de Bebidas: ${getCharmsThemeLabel(quoteState.drinkCharmsTheme)} (${quoteState.guestCount} pzs x $1 = +$${quoteState.guestCount})`
+      ? `Personalización de Bebidas: ${getCharmsThemeLabel(quoteState.drinkCharmsTheme)} (${quoteState.guestCount} piezas)`
       : '';
 
     // Guardar en Supabase y abrir WhatsApp oficial
@@ -488,7 +470,6 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
       cupOptionLabel: cupLabel,
       terraceFurnitureLabel: furnitureText || undefined,
       charmsCustomizationLabel: charmsText || undefined,
-      totalUsd: grandTotal,
     });
   };
 
@@ -549,11 +530,11 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
           </div>
 
           <span className="text-[11px] font-black tracking-widest text-[#B69C76] uppercase">
-            Cotización Generada Exitosamente
+            Solicitud Recibida
           </span>
 
           <h2 className="text-2xl sm:text-3xl font-extrabold text-[#3C4A3C] mt-1 mb-2 font-editorial">
-            ¡Tu fecha ha sido reservada preliminarmente!
+            ¡Gracias! Preparamos tu presupuesto
           </h2>
 
           <p className="text-xs sm:text-sm text-[#525B4F] mb-6">
@@ -587,7 +568,7 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
             )}
             {quoteState.drinkCharmsCustomization && (
               <div className="flex justify-between border-b border-[#E6DFD4] pb-2">
-                <span className="text-gray-500">Charms & Dijs en Bebidas (+$1/pz):</span>
+                <span className="text-gray-500">Charms & Dijs en Bebidas:</span>
                 <span className="font-bold text-[#455546]">
                   {quoteState.guestCount} piezas ({quoteState.drinkCharmsTheme === 'ositos_teddy' ? 'Ositos Teddy' : quoteState.drinkCharmsTheme === 'halloween' ? 'Spooky Cute' : quoteState.drinkCharmsTheme === 'navidad' ? 'Navidad' : quoteState.drinkCharmsTheme === 'mini_foodie' ? 'Mini Foodie' : quoteState.drinkCharmsTheme === 'glow_animals' ? 'Glow in Dark' : quoteState.drinkCharmsTheme === 'gemas_cristal' ? 'Gemas 3D' : 'Mix Sorpresa'})
                 </span>
@@ -603,41 +584,18 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
           <div className="space-y-2 mb-6">
             <div className="bg-[#EBF3EA] border border-[#BACFBA] rounded-2xl p-3 text-center text-xs text-[#2E432E] flex items-center justify-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-[#455546] shrink-0" />
-              <span>✓ Solicitud guardada exitosamente en la <strong>Base de Datos Supabase</strong> (Código: <strong>{submittedBooking.code}</strong>).</span>
+              <span>✓ Tu solicitud quedó registrada con el código <strong>{submittedBooking.code}</strong>.</span>
             </div>
 
             {quoteState.clientEmail && (
               <div className="bg-[#FAF8F4] border border-[#D4C4AA] rounded-2xl p-3 text-center text-xs text-[#455546] flex items-center justify-center gap-2">
                 <Mail className="w-4 h-4 text-[#7A8E77] shrink-0" />
-                <span>Propuesta remitida a <strong>{quoteState.clientEmail}</strong> y a nuestro equipo de eventos.</span>
+                <span>Te enviamos la confirmación a <strong>{quoteState.clientEmail}</strong>. Tu presupuesto personalizado llegará por correo o WhatsApp.</span>
               </div>
             )}
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            {quoteState.clientEmail && (
-              <button
-                onClick={() => {
-                  const mailtoUrl = generarMailtoCotizacion({
-                    bookingCode: submittedBooking.code,
-                    clientName: quoteState.clientName.trim() || 'Cliente Distinguido',
-                    clientPhone: quoteState.clientPhone.trim() || 'No indicado',
-                    clientEmail: quoteState.clientEmail.trim(),
-                    packageName: selectedPkg.name,
-                    guestCount: quoteState.guestCount,
-                    eventDate: quoteState.eventDate,
-                    eventTime: quoteState.eventTime,
-                    locationZone: quoteState.locationZone,
-                    signagePhrase: quoteState.customSignagePhrase,
-                  });
-                  window.location.href = mailtoUrl;
-                }}
-                className="py-3 px-6 rounded-full bg-[#455546] text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-[#384639] transition-all shadow-md cursor-pointer"
-              >
-                <Mail className="w-4 h-4 text-[#D4BE9B]" />
-                <span>Abrir / Reenviar en mi Correo</span>
-              </button>
-            )}
 
             <button
               onClick={handleOpenWhatsApp}
@@ -1250,7 +1208,7 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="px-2.5 py-1 rounded-full bg-[#B69C76]/20 text-[#3C4A3C] text-[11px] font-extrabold tracking-wide shrink-0 border border-[#B69C76]/30">
-                            +$1.00 / pieza
+                            Opcional
                           </span>
                           <input
                             type="checkbox"
@@ -1325,14 +1283,14 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
                           </div>
 
                           <div className="pt-2 flex items-center justify-between text-xs font-bold text-[#455546] border-t border-[#E6DFD4]">
-                            <span>Inversión adicional:</span>
-                            <span>{quoteState.guestCount} piezas × $1.00 = +${quoteState.guestCount}.00 USD</span>
+                            <span>Piezas incluidas:</span>
+                            <span>{quoteState.guestCount} piezas, una por invitado</span>
                           </div>
                         </div>
                       ) : (
                         <div className="text-[11px] text-[#7A8E77] flex items-center gap-1.5">
                           <Sparkles className="w-3.5 h-3.5" />
-                          <span>Marca la casilla arriba para activar la personalización de bebidas a $1 por pieza.</span>
+                          <span>Marca la casilla arriba para incluir la personalización de bebidas en tu presupuesto.</span>
                         </div>
                       )}
                     </div>
@@ -1452,17 +1410,18 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
                     <label className="block text-xs font-bold text-[#3C4A3C] uppercase tracking-wider mb-1.5 flex items-center justify-between">
                       <span className="flex items-center gap-1.5">
                         <Mail className="w-3.5 h-3.5 text-[#7A8E77]" />
-                        <span>Correo Electrónico (Para recibir propuesta formal) *</span>
+                        <span>Correo electrónico (cualquier proveedor)</span>
                       </span>
                       <span className="text-[10px] text-[#7A8E77] font-semibold bg-[#FAF8F4] px-2 py-0.5 rounded-full border border-[#D4C4AA]">
-                        Registro en Base de Datos & Correo
+                        Opcional si dejas WhatsApp
                       </span>
                     </label>
                     <input
                       id="client-email-input"
                       type="email"
-                      required
-                      placeholder="Ej. valeria@gmail.com"
+                      inputMode="email"
+                      autoComplete="email"
+                      placeholder="tu@correo.com"
                       value={quoteState.clientEmail}
                       onChange={(e) => {
                         setQuoteState({ ...quoteState, clientEmail: e.target.value });
@@ -1509,7 +1468,7 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
                         className="py-3.5 px-6 rounded-full bg-[#455546] text-white text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-[#384639] shadow-md transition-all cursor-pointer"
                       >
                         <Mail className="w-4 h-4 text-[#D4BE9B]" />
-                        <span>{isSubmittingEmail ? 'Guardando...' : 'Enviar Solicitud por Correo'}</span>
+                        <span>{isSubmittingEmail ? 'Enviando...' : 'Solicitar presupuesto'}</span>
                       </button>
 
                       <button
@@ -1619,9 +1578,9 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
 
                 {quoteState.drinkCharmsCustomization && (
                   <div className="flex justify-between text-[#FAF8F4]/90">
-                    <span>Personalización Charms ({quoteState.guestCount} pzs x $1)</span>
+                    <span>Personalización Charms ({quoteState.guestCount} piezas)</span>
                     <span className="font-semibold text-[#D4BE9B]">
-                      +${quoteState.guestCount}
+                      Incluida
                     </span>
                   </div>
                 )}
@@ -1638,13 +1597,19 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
                   <span className="text-xs uppercase tracking-wider text-[#D4BE9B] font-bold">
                     Presupuesto del Evento
                   </span>
-                  <span className="text-xl sm:text-2xl font-black text-white font-editorial">
-                    ${grandTotal.toLocaleString()}{' '}
-                    <span className="text-xs font-sans text-[#7A8E77]">USD</span>
-                  </span>
+                  {isAdmin ? (
+                    <span className="text-xl sm:text-2xl font-black text-white font-editorial" title="Estimado interno (solo visible para administración)">
+                      ${grandTotal.toLocaleString()}{' '}
+                      <span className="text-xs font-sans text-[#7A8E77]">USD</span>
+                    </span>
+                  ) : (
+                    <span className="text-base sm:text-lg font-bold text-white font-editorial">A medida</span>
+                  )}
                 </div>
                 <div className="text-[10px] text-gray-300 mt-1">
-                  Propuesta completa con barra ceremonial, personalización y mobiliario.
+                  {isAdmin
+                    ? 'Estimado interno · solo visible para administración.'
+                    : 'Solicítalo y te enviamos tu presupuesto personalizado por correo o WhatsApp.'}
                 </div>
               </div>
 
@@ -1657,7 +1622,7 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
                   className="w-full py-3.5 px-4 rounded-full bg-[#FAF8F4] text-[#3C4A3C] font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-[#F3EFE7] transition-all shadow-md border-2 border-[#D4C4AA] cursor-pointer"
                 >
                   <Mail className="w-4 h-4 text-[#455546]" />
-                  <span>{isSubmittingEmail ? 'Guardando en BD...' : 'Solicitar Cotización por Correo'}</span>
+                  <span>{isSubmittingEmail ? 'Enviando solicitud...' : 'Solicitar mi presupuesto'}</span>
                 </button>
 
                 <button
@@ -1666,7 +1631,7 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
                   className="w-full py-3 px-4 rounded-full bg-[#25D366] text-black font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-[#1EBE5D] transition-all shadow-xs cursor-pointer"
                 >
                   <MessageCircle className="w-4 h-4 fill-black text-black" />
-                  <span>Consultar por WhatsApp</span>
+                  <span>Solicitar por WhatsApp</span>
                 </button>
               </div>
 
@@ -1734,7 +1699,7 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
             </div>
             <h4 className="font-bold text-xs text-[#3C4A3C] mb-1">Charms & Toldos Riviera</h4>
             <p className="text-xs text-[#6A7869] leading-relaxed">
-              Montaje integrado de sombrillas Riviera, mesas altas, taburetes y estación interactiva de dijs ($1/pz).
+              Montaje integrado de sombrillas Riviera, mesas altas, taburetes y estación interactiva de dijs coleccionables.
             </p>
           </div>
         </div>
@@ -1761,8 +1726,8 @@ export const EventQuoterScreen: React.FC<EventQuoterScreenProps> = ({
               a: 'Solo requerimos una toma de corriente estándar de 110V y un espacio plano de al menos 2.0 x 1.5 metros. Si tu evento es al aire libre, nuestro equipo cuenta con sombrillas Riviera y extensiones para exteriores para proteger la estación del sol.',
             },
             {
-              q: '¿Cómo funciona la personalización de bebidas con Charms y Gemas a $1 por pieza?',
-              a: 'Es una experiencia interactiva viral: cada invitado se acerca a la barra y recibe su bebida decorada con un dije coleccionable (ositos kawaii, fantasmitas spooky, motivos navideños, mini foodie, animalitos glow) o gemas 3D brillantes en su vaso. El dije se convierte en un recuerdo físico inolvidable de tu evento y solo cuesta $1 adicional por pieza.',
+              q: '¿Cómo funciona la personalización de bebidas con Charms y Gemas?',
+              a: 'Es una experiencia interactiva viral: cada invitado se acerca a la barra y recibe su bebida decorada con un dije coleccionable (ositos kawaii, fantasmitas spooky, motivos navideños, mini foodie, animalitos glow) o gemas 3D brillantes en su vaso. El dije se convierte en un recuerdo físico inolvidable de tu evento; lo incluimos en tu presupuesto a medida.',
             },
             {
               q: '¿Cómo se coordina el servicio de toldos sombrilla Riviera y mesas altas?',

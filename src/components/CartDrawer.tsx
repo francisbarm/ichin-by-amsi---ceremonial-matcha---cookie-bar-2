@@ -3,7 +3,7 @@ import { CartOrderItem } from '../types';
 import { X, Trash2, Plus, Minus, ShoppingBag, Send, Calendar, Sparkles, MapPin, Mail, MessageCircle, CheckCircle2, User as UserIcon } from 'lucide-react';
 import { CARACAS_ZONES } from '../data/eventPackages';
 import { guardarPedidoCarritoSupabase } from '../lib/supabase';
-import { generarMailtoPedidoCarrito } from '../services/resendService';
+import { enviarCorreoCotizacionResend } from '../services/resendService';
 import { useAuth } from '../context/AuthContext';
 
 interface CartDrawerProps {
@@ -59,7 +59,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
       if (item.customization?.iceLevel) text += ` | Hielo: ${item.customization.iceLevel}`;
       if (item.customization?.extraShot) text += ` | Extra Shot Ceremonial (+3g)`;
       if (item.customization?.coldFoam) text += ` | Cold Foam Botánica`;
-      if (item.customization?.charmPiece) text += ` | Charm: ${item.customization.charmPiece} (+$1.00)`;
+      if (item.customization?.charmPiece) text += ` | Charm: ${item.customization.charmPiece}`;
       if (item.customization?.notes) text += ` | Nota: ${item.customization.notes}`;
     });
     return text;
@@ -68,8 +68,11 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const handleSendOrderEmail = async () => {
     if (items.length === 0) return;
 
-    if (!customerEmail || !customerEmail.includes('@')) {
-      setCartEmailError('Por favor ingresa tu correo electrónico.');
+    const emailTyped = (customerEmail || '').trim();
+    const hasEmail = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(emailTyped);
+    const hasPhone = (customerPhone || '').replace(/\D/g, '').length >= 7;
+    if ((emailTyped && !hasEmail) || (!hasEmail && !hasPhone)) {
+      setCartEmailError(emailTyped ? 'Revisa tu correo: parece incompleto.' : 'Déjanos tu correo o tu teléfono / WhatsApp.');
       const el = document.getElementById('cart-email-input');
       if (el) el.focus();
       return;
@@ -90,23 +93,17 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
       fecha: eventDate,
     });
 
-    // 2. Abrir correo pre-redactado
-    const mailtoUrl = generarMailtoPedidoCarrito({
-      customerName: customerName || 'Anfitrión',
-      customerEmail: customerEmail,
-      customerPhone: customerPhone,
-      eventType: eventType,
-      eventZone: eventZone,
-      eventDate: eventDate,
-      itemsList: formatItemsListText(),
-      totalEstimated: total,
+    // 2. Enviar confirmación por correo desde el servidor (sin abrir la app de correo)
+    if (hasEmail) await enviarCorreoCotizacionResend({
+      toEmail: emailTyped,
+      clientName: customerName || 'Anfitrión',
+      bookingCode: `ICH-${Math.floor(1000 + Math.random() * 9000)}`,
+      packageName: 'Selección del menú ICHIN',
+      guestCount: items.reduce((acc, it) => acc + it.quantity, 0),
+      eventDate: eventDate || 'Por definir',
+      locationZone: eventZone,
+      addons: items.map((it) => `${it.quantity}x ${it.item.name}${it.customization?.charmPiece ? ` · Charm: ${it.customization.charmPiece}` : ''}`),
     });
-
-    try {
-      window.location.href = mailtoUrl;
-    } catch (e) {
-      console.log('Mailto error:', e);
-    }
 
     setEmailSentSuccess(true);
     setTimeout(() => setEmailSentSuccess(false), 5000);
@@ -134,7 +131,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         itemsList += `\n   • Cold Foam Botánica`;
       }
       if (item.customization?.charmPiece) {
-        itemsList += `\n   • Dije / Charm Personalizado: ${item.customization.charmPiece} (+$1.00)`;
+        itemsList += `\n   • Dije / Charm Personalizado: ${item.customization.charmPiece}`;
       }
       if (item.customization?.notes) {
         itemsList += `\n   • Nota: ${item.customization.notes}`;
@@ -294,7 +291,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                         )}
                         {cartItem.customization.charmPiece && (
                           <span className="bg-[#B69C76]/20 text-[#3C4A3C] font-bold px-1.5 py-0.5 rounded border border-[#B69C76]/30">
-                            ✨ {cartItem.customization.charmPiece} (+$1.00)
+                            ✨ {cartItem.customization.charmPiece}
                           </span>
                         )}
                       </div>
@@ -447,7 +444,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 {emailSentSuccess && (
                   <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs flex items-center gap-2 animate-fadeIn">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>¡Solicitud guardada en base de datos y correo preparado para enviar!</span>
+                    <span>¡Recibimos tu solicitud! Te enviaremos tu presupuesto personalizado.</span>
                   </div>
                 )}
 
@@ -486,7 +483,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             >
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-[#B69C76]" />
-                <span>Solicitar Cotización por Correo</span>
+                <span>Solicitar presupuesto</span>
               </div>
               <span className="text-[10px] text-[#B69C76] font-normal lowercase bg-black/20 px-2 py-0.5 rounded-full">Formal</span>
             </button>

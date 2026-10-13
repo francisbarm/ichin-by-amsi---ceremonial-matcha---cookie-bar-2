@@ -237,7 +237,7 @@ export const MenuCustomizationModal: React.FC<MenuCustomizationModalProps> = ({
                     {isDrink ? 'Personalización de Vaso con Charm o Gemas' : 'Topper Temático de Pastelería'}
                   </label>
                   <span className="text-[11px] font-bold text-[#B69C76] bg-[#F4EFE6] px-2 py-0.5 rounded-full border border-[#E3DAC9]">
-                    +$1.00 / pieza
+                    Opcional
                   </span>
                 </div>
                 <p className="text-[11px] text-[#6D756A] mb-3">
@@ -292,7 +292,7 @@ export const MenuCustomizationModal: React.FC<MenuCustomizationModalProps> = ({
                         <div className="flex items-center justify-between text-[10px] mt-1 text-[#6D756A]">
                           <span>{charm.tag}</span>
                           <span className={charm.price > 0 ? 'font-bold text-[#B69C76]' : 'text-gray-400'}>
-                            {charm.price > 0 ? '+$1.00' : 'Incluido'}
+                            {charm.price > 0 ? 'Opcional' : 'Incluido'}
                           </span>
                         </div>
                       </button>
@@ -347,7 +347,7 @@ export const MenuCustomizationModal: React.FC<MenuCustomizationModalProps> = ({
           >
             <span>Agregar a la Selección para Evento</span>
             <span className="text-[#D4BE9B] font-extrabold text-xs">
-              {quantity} {quantity === 1 ? 'unidad' : 'unidades'} • ${totalPrice.toFixed(2)}
+              {quantity} {quantity === 1 ? 'unidad' : 'unidades'}
             </span>
           </button>
         </div>

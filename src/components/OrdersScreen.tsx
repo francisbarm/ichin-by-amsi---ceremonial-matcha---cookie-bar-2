@@ -465,7 +465,7 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
                     <span className="truncate">{b.zone.split('/')[0]}</span>
                   </div>
                   <div className="flex items-center gap-1.5 font-black text-[#455546]">
-                    <span>${(b.totalUsd || 820).toLocaleString()} USD</span>
+                    <span>{isAdmin ? `$${(b.totalUsd || 820).toLocaleString()} USD` : 'Presupuesto a medida'}</span>
                   </div>
                 </div>
 
@@ -479,6 +479,7 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
                 </div>
 
                 {/* BOTÓN RÁPIDO DE RESPUESTA DIRECTO EN CADA TARJETA */}
+                {isAdmin && (
                 <div className="mt-3 pt-3 border-t border-[#F3EFE7] flex flex-wrap items-center justify-between gap-2">
                   <button
                     type="button"
@@ -510,6 +511,7 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
                     <span>Ver PDF</span>
                   </button>
                 </div>
+                )}
               </div>
             );
           })}
@@ -595,6 +597,7 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
                 {/* ========================================================= */}
                 {/* CENTRO DE RESPUESTA INMEDIATA CON PRESUPUESTO (TOP)       */}
                 {/* ========================================================= */}
+                {isAdmin ? (
                 <div className="bg-gradient-to-br from-[#FAF8F4] to-[#F1ECE1] p-4 sm:p-5 rounded-2xl border-2 border-[#455546]/25 shadow-sm space-y-3.5">
                   <div className="flex items-center justify-between">
                     <div>
@@ -691,6 +694,24 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({
                     </a>
                   )}
                 </div>
+                ) : (
+                  <div className="bg-gradient-to-br from-[#FAF8F4] to-[#F1ECE1] p-4 sm:p-5 rounded-2xl border border-[#E6DFD4] space-y-2">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#455546] text-[#FAF8F4] text-[10px] font-extrabold uppercase tracking-wider">
+                      <Sparkles className="w-3 h-3 text-[#D4BE9B]" /> Presupuesto a medida
+                    </span>
+                    <p className="text-xs text-[#525B4F] leading-relaxed">
+                      Nuestro equipo está preparando tu presupuesto personalizado. Te lo enviaremos por correo y WhatsApp con el código <strong className="text-[#3C4A3C]">{currentSelected.code}</strong>.
+                    </p>
+                    <a
+                      href={`https://wa.me/584143260003?text=${encodeURIComponent(`Hola ICHIN, quisiera saber el estado de mi presupuesto ${currentSelected.code}.`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-[#455546] hover:underline"
+                    >
+                      <MessageCircle className="w-3.5 h-3.5" /> Consultar por WhatsApp
+                    </a>
+                  </div>
+                )}
 
                 {/* ========================================================= */}
                 {/* DETALLES DE LA RESERVA DEL CLIENTE                        */}

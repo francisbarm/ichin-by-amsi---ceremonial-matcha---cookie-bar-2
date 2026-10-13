@@ -31,11 +31,10 @@ export function generarMensajeWhatsAppEvento(data: WhatsAppEventPayload): string
     `• *Evento:* ${data.eventType}\n` +
     `• *Paquete:* ${data.packageName}\n` +
     `• *Invitados:* ${data.guestCount} personas\n` +
-    (data.totalUsd ? `• *Presupuesto Estimado:* $${data.totalUsd.toLocaleString()} USD\n` : '') +
     `• *Frase en Pizarra:* "${data.customSignagePhrase || 'GOOD HABITS, BETTER DAYS ♡'}"\n` +
     (data.cupOptionLabel ? `• *Presentación:* ${data.cupOptionLabel}\n` : '') +
     (data.terraceFurnitureLabel ? `• *Mobiliario de Terraza:* ${data.terraceFurnitureLabel}\n` : '') +
-    (data.charmsCustomizationLabel ? `• *Personalización con Charms (+$1/pieza):* ${data.charmsCustomizationLabel}\n` : '') +
+    (data.charmsCustomizationLabel ? `• *Personalización con Charms:* ${data.charmsCustomizationLabel}\n` : '') +
     `• *Fecha:* ${data.eventDate}${data.eventTime ? ` a las ${data.eventTime}` : ''}\n` +
     `• *Zona Caracas:* ${data.locationZone}\n` +
     `• *Contacto:* ${data.clientName || 'Cliente'}\n` +

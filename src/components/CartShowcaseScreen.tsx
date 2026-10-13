@@ -800,7 +800,7 @@ export const CartShowcaseScreen: React.FC<CartShowcaseScreenProps> = ({
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#B69C76]/15 text-[#3C4A3C] text-[11px] font-bold uppercase tracking-wider mb-2 border border-[#B69C76]/25">
               <span>✨</span>
-              <span>Tendencia Viral en Caracas • $1 por pieza</span>
+              <span>Tendencia Viral en Caracas</span>
             </div>
             <h3 className="text-xl sm:text-3xl font-bold text-[#3C4A3C] font-editorial">
               Barra de Charms, Dijs & Gemas para Vasos
